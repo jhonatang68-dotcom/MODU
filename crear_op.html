@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>MODU · Orden de Producción Grafik</title>
+<style>
+    :root { --primary: #1e3a5f; --accent: #2ecc71; --bg: #f4f7f6; --danger: #e74c3c; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    header { background: #111; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--accent); }
+    
+    .main-wrapper { display: flex; flex: 1; overflow: hidden; gap: 20px; padding: 20px; }
+    .col-form { flex: 1.2; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    
+    h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 11px; font-weight: bold; color: #777; text-transform: uppercase; margin-top: 10px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; font-size: 14px; box-sizing: border-box; }
+    
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .tabs { display: flex; gap: 4px; margin-top: 15px; }
+    .tab-btn { padding: 10px 15px; border: none; background: #ddd; cursor: pointer; border-radius: 5px 5px 0 0; font-weight: bold; font-size: 11px; }
+    .tab-btn.active { background: var(--primary); color: white; }
+    
+    .tab-content { border: 2px solid var(--primary); padding: 15px; border-radius: 0 5px 5px 5px; display: none; background: white; }
+    .tab-content.active { display: block; }
+    
+    /* RESUMEN LATERAL */
+    .col-resume { flex: 0.8; background: white; border-left: 4px solid var(--primary); display: flex; flex-direction: column; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .resume-header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
+    .resume-body { flex: 1; padding: 15px; overflow-y: auto; }
+    .item-orden { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: start; font-size: 13px; }
+    
+    .btn-add { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 2; transition: 0.3s; }
+    .btn-add:hover { background: #2c3e50; }
+    .btn-clean { background: #eee; color: #555; border: 1px solid #ccc; padding: 10px; border-radius: 5px; cursor: pointer; flex: 1; font-weight: bold; }
+    
+    .btn-save-op { background: var(--accent); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; margin-bottom: 8px; }
+    .btn-save-pdf { background: #3498db; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; }
+    
+    .price-box { background: #e8f4fd; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #3498db; }
+    .badge-minima { background: #f39c12; color: white; padding: 3px 8px; border-radius: 10px; font-size: 10px; display: none; margin-left: 5px; }
+</style>
+</head>
+<body>
+
+<header>
+    <div onclick="location.href='index.html'" style="cursor:pointer; font-weight: bold;">⬅ INICIO</div>
+    <div style="font-weight:bold; font-size:18px;">ORDEN DE PRODUCCIÓN # <span id="numOP">000</span></div>
+</header>
+
+<div class="main-wrapper">
+    <div class="col-form">
+        <div class="card">
+            <h3>1. Información del Cliente</h3>
+            <label>Cliente / Empresa</label>
+            <input type="text" id="opCliente" placeholder="Escriba para buscar en el directorio..." oninput="buscarCli(this.value)" list="listaClientes" autocomplete="off">
+            <datalist id="listaClientes"></datalist>
+            
+            <div class="grid-3">
+                <div><label>Fecha Pedido</label><input type="date" id="fPedido"></div>
+                <div><label>Fecha Entrega</label><input type="datetime-local" id="fEntrega"></div>
+                <div><label>Referencia</label><input type="text" id="referencia" placeholder="Ej: Pedido Bavaria"></div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active">Gran Formato / Plotter</button>
+            <button class="tab-btn" onclick="alert('Módulo de Lito en desarrollo')">Litografía</button>
+        </div>
+
+        <div id="tGF" class="tab-content active">
+            <label>Seleccionar Material del Tarifario:</label>
+            <input list="listaMateriales" id="selGF" placeholder="Buscar material..." oninput="preCalcularGF()">
+            <datalist id="listaMateriales"></datalist>
+
+            <div class="grid-3">
+                <div><label>Ancho (cm)</label><input type="number" id="w" value="100" oninput="preCalcularGF()"></div>
+                <div><label>Alto (cm)</label><input type="number" id="h" value="100" oninput="preCalcularGF()"></div>
+                <div><label>Cant.</label><input type="number" id="c" value="1" oninput="preCalcularGF()"></div>
+            </div>
+
+            <div class="price-box">
+                <div class="grid-3" style="grid-template-columns: 1fr 1fr;">
+                    <div>
+                        <label>Valor Unitario ($)</label>
+                        <input type="number" id="vUnitario" style="font-weight:bold; color:var(--primary); font-size:18px;" oninput="recalcularTotalItem()">
+                    </div>
+                    <div>
+                        <label>Subtotal Item <span id="tagMinima" class="badge-minima">MÍNIMA APLICADA</span></label>
+                        <input type="text" id="vTotalItem" readonly style="background:#f0f0f0; font-weight:bold; font-size:18px;">
+                    </div>
+                </div>
+                <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="checkMinima" onchange="preCalcularGF()" style="width:18px; height:18px;">
+                    <label for="checkMinima" style="margin:0; color:#2c3e50;">Forzar Cobro de Mínima</label>
+                </div>
+            </div>
+
+            <label>Acabados y Observaciones</label>
+            <textarea id="obsGF" rows="2" placeholder="Ojales cada 50cm, laminado mate, corte por el borde..."></textarea>
+            
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn-clean" onclick="limpiarItem()">REINICIAR</button>
+                <button class="btn-add" id="btnAddItem" onclick="agregarAlTicket()">+ AGREGAR A LA ORDEN</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-resume">
+        <div class="resume-header">DETALLES DE PRODUCCIÓN</div>
+        <div id="resDetalles" style="padding:15px; border-bottom:1px solid #eee; font-size:12px; background:#f9f9f9;">
+            <b id="resCliente" style="font-size:14px;">Cliente: ---</b><br>
+            <span id="resFechas">Entrega: ---</span> | <span id="resRef">Ref: ---</span>
+        </div>
+        <div class="resume-body" id="cuerpoOrden">
+            <div style="text-align:center; color:#ccc; margin-top:50px;">Aún no hay items en la orden</div>
+        </div>
+        <div style="padding:15px; border-top:2px solid #eee; background:#fcfcfc;">
+            <div style="display:flex; justify-content:space-between; font-size:22px; font-weight:bold; margin-bottom:15px; color:var(--primary);">
+                <span>TOTAL:</span><span id="totalFinal">$ 0</span>
+            </div>
+            <button class="btn-save-op" onclick="guardarOP('solo')">💾 GUARDAR ORDEN</button>
+            <button class="btn-save-pdf" onclick="guardarOP('pdf')">🖨️ GUARDAR Y GENERAR PDF</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const db_clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+    const db_materiales = JSON.parse(localStorage.getItem("materiales_modu")) || [];
+    const db_ordenes = JSON.parse(localStorage.getItem("ordenes_grafik")) || [];
+    
+    let itemsOrden = [];
+    let clienteActivo = null;
+    let editandoIdx = -1;
+
+    window.onload = () => {
+        document.getElementById('fPedido').valueAsDate = new Date();
+        const num = (db_ordenes.length + 1).toString().padStart(4, '0');
+        document.getElementById("numOP").innerText = num;
+        cargarMateriales();
+    };
+
+    function cargarMateriales() {
+        const lista = document.getElementById("listaMateriales");
+        db_materiales.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m.nombre;
+            lista.appendChild(opt);
+        });
+    }
+
+    function buscarCli(val) {
+        const lista = document.getElementById("listaClientes");
+        lista.innerHTML = "";
+        
+        const filtrados = db_clientes.filter(c => c.nombre.toLowerCase().includes(val.toLowerCase()));
+        filtrados.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.nombre;
+            lista.appendChild(opt);
+        });
+
+        const exacto = db_clientes.find(c => c.nombre.toLowerCase() === val.toLowerCase());
+        if(exacto) {
+            clienteActivo = exacto;
+            const cod = exacto.tipo.toLowerCase() === 'tercero' ? 'TR' : 'CL';
+            document.getElementById("resCliente").innerHTML = `Cliente: ${exacto.nombre} <span style="color:#3498db">[${cod}]</span>`;
+            preCalcularGF();
+        }
+    }
+
+    function preCalcularGF() {
+        const nombreMat = document.getElementById("selGF").value;
+        const mat = db_materiales.find(m => m.nombre === nombreMat);
+        if(!mat || !clienteActivo) return;
+
+        // Lógica de Precios: Si es tercero usa pTer, si no pCli
+        const precioM2 = clienteActivo.tipo.toLowerCase() === "tercero" ? (mat.pTer || mat.pTercero) : (mat.pCli || mat.pCliente);
+        const valorMinimo = clienteActivo.tipo.toLowerCase() === "tercero" ? (mat.mTer || mat.mTercero) : (mat.mCli || mat.mCliente);
+
+        const w = parseFloat(document.getElementById("w").value) / 100; // a metros
+        const h = parseFloat(document.getElementById("h").value) / 100; // a metros
+        const cant = parseFloat(document.getElementById("c").value) || 0;
+        const forzarMinima = document.getElementById("checkMinima").checked;
+
+        if(w > 0 && h > 0 && cant > 0) {
+            let totalItem = (w * h * cant * precioM2);
+            const tagMin = document.getElementById("tagMinima");
+
+            if(forzarMinima || totalItem < valorMinimo) {
+                totalItem = valorMinimo;
+                tagMin.style.display = "inline-block";
+            } else {
+                tagMin.style.display = "none";
+            }
+
+            document.getElementById("vUnitario").value = Math.round(totalItem / cant);
+            recalcularTotalItem();
+        }
+    }
+
+    function recalcularTotalItem() {
+        const unitario = parseFloat(document.getElementById("vUnitario").value) || 0;
+        const cant = parseFloat(document.getElementById("c").value) || 0;
+        const total = unitario * cant;
+        document.getElementById("vTotalItem").value = "$ " + total.toLocaleString('es-CO');
+    }
+
+    function agregarAlTicket() {
+        if(!clienteActivo) return alert("Primero selecciona un cliente del directorio.");
+        const matNombre = document.getElementById("selGF").value;
+        const unitario = parseFloat(document.getElementById("vUnitario").value) || 0;
+        const cant = parseFloat(document.getElementById("c").value) || 0;
+
+        const itm = {
+            matNombre,
+            w: document.getElementById("w").value,
+            h: document.getElementById("h").value,
+            c: cant,
+            unitario,
+            total: unitario * cant,
+            obs: document.getElementById("obsGF").value
+        };
+
+        if(editandoIdx > -1) {
+            itemsOrden[editandoIdx] = itm;
+            editandoIdx = -1;
+            document.getElementById("btnAddItem").innerText = "+ AGREGAR A LA ORDEN";
+        } else {
+            itemsOrden.push(itm);
+        }
+
+        renderTicket();
+        limpiarItem();
+    }
+
+    function renderTicket() {
+        const cuerpo = document.getElementById("cuerpoOrden");
+        const fEnt = document.getElementById("fEntrega").value;
+        const ref = document.getElementById("referencia").value;
+        
+        document.getElementById("resFechas").innerText = "Entrega: " + (fEnt ? fEnt.replace("T", " ") : "---");
+        document.getElementById("resRef").innerText = "Ref: " + (ref || "---");
+
+        cuerpo.innerHTML = "";
+        let suma = 0;
+        
+        itemsOrden.forEach((it, idx) => {
+            suma += it.total;
+            cuerpo.innerHTML += `
+                <div class="item-orden">
+                    <div style="max-width:75%">
+                        <strong>${it.c} x ${it.matNombre}</strong><br>
+                        <small>${it.w}x${it.h}cm | ${it.obs}</small>
+                    </div>
+                    <div style="text-align:right">
+                        <b>$${it.total.toLocaleString()}</b><br>
+                        <span onclick="borrarItem(${idx})" style="color:var(--danger); cursor:pointer; font-size:10px;">[ELIMINAR]</span>
+                    </div>
+                </div>`;
+        });
+        document.getElementById("totalFinal").innerText = "$ " + suma.toLocaleString('es-CO');
+    }
+
+    function borrarItem(idx) {
+        itemsOrden.splice(idx, 1);
+        renderTicket();
+    }
+
+    function limpiarItem() {
+        document.getElementById("selGF").value = "";
+        document.getElementById("vUnitario").value = "";
+        document.getElementById("vTotalItem").value = "$ 0";
+        document.getElementById("obsGF").value = "";
+        document.getElementById("checkMinima").checked = false;
+        document.getElementById("tagMinima").style.display = "none";
+    }
+
+    function guardarOP(modo) {
+        if(itemsOrden.length === 0) return alert("La orden está vacía.");
+        
+        const op = {
+            id: Date.now(),
+            numOP: document.getElementById("numOP").innerText,
+            cliente: clienteActivo.nombre,
+            clienteTipo: clienteActivo.tipo,
+            total: itemsOrden.reduce((a,b) => a + b.total, 0),
+            items: itemsOrden,
+            fecha: document.getElementById("fPedido").value,
+            estado: "Pendiente"
+        };
+
+        db_ordenes.push(op);
+        localStorage.setItem("ordenes_grafik", JSON.stringify(db_ordenes));
+
+        alert("✅ Orden #" + op.numOP + " guardada correctamente.");
+        if(modo === 'pdf') alert("Generando PDF... (Módulo de impresión activo)");
+        
+        location.reload();
+    }
+</script>
+</body>
+</html>

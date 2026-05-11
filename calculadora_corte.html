@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GRapp - Calculadora de Corte</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f6f8;
+    margin:0;
+}
+
+header{
+    background:#111;
+    color:white;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.home-icon{
+    width:22px;
+    height:22px;
+    fill:#f2f2f2;
+    cursor:pointer;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+.section{
+    background:white;
+    padding:15px;
+    border-radius:6px;
+    margin-bottom:15px;
+}
+
+input, select{
+    width:80px;
+    padding:5px;
+    margin:4px;
+}
+
+button{
+    padding:6px 12px;
+    border:none;
+    border-radius:5px;
+    background:#3498db;
+    color:white;
+    cursor:pointer;
+}
+
+.add-btn{ background:#2ecc71; }
+.remove-btn{ background:#e74c3c; }
+.export-btn{ background:#8e44ad; }
+
+.result-area{
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+}
+
+canvas{
+    border:1px solid #ccc;
+    background:#fff;
+}
+
+.resultados{
+    min-width:300px;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <svg class="home-icon" onclick="location.href='index.html'"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24">
+        <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+    </svg>
+    <span>Calculadora de Corte</span>
+</header>
+
+<div class="container">
+
+<div class="section" style="display:flex; justify-content:center; align-items:flex-end; gap:60px; flex-wrap:wrap;">
+
+    <div style="text-align:left;">
+        <strong>Tamaño de material:</strong><br><br>
+
+        <strong>Ancho:</strong>
+        <input id="materialAncho"> cm
+
+        <strong>X</strong>
+
+        <strong>Alto:</strong>
+        <input id="materialAlto"> cm
+    </div>
+
+    <div style="text-align:left;">
+        <strong>Modo de cálculo:</strong><br><br>
+        <select id="modo">
+            <option value="pliego">Pliego</option>
+            <option value="rollo">Rollo</option>
+        </select>
+    </div>
+
+</div>
+
+
+
+<div class="section">
+<strong>Cortes:</strong>
+<div id="listaCortes"></div>
+<button class="add-btn" onclick="agregarCorte()">+ Añadir Corte</button>
+</div>
+
+<button onclick="calcular()">Calcular</button>
+<button class="export-btn" onclick="exportarImagen()">Exportar</button>
+
+<div class="section result-area">
+<canvas id="canvas" width="650" height="500"></canvas>
+<div class="resultados" id="resultados"></div>
+</div>
+
+</div>
+
+<script>
+
+// ================= UI =================
+
+function agregarCorte(){
+    const cont = document.getElementById("listaCortes");
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+        <strong>Ancho:</strong>
+        <input class="cAncho"> cm
+        <strong>X</strong>
+        <strong>Alto:</strong>
+        <input class="cAlto"> cm
+        <strong>Cant:</strong>
+        <input class="cCant" value="0" style="width:50px">
+        <button class="remove-btn" onclick="this.parentElement.remove()">X</button>
+    `;
+    cont.appendChild(div);
+}
+
+// ================= EXPORTAR =================
+
+function exportarImagen(){
+    const canvas = document.getElementById("canvas");
+    const link = document.createElement("a");
+    link.download = "corte_grapp.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+
+// ================= CALCULAR =================
+
+function calcular(){
+    const modo = document.getElementById("modo").value;
+    if(modo === "pliego") calcularPliego();
+    else calcularRollo();
+}
+
+// ================= PLIEGO =================
+
+function calcularPliego(){
+
+    const ancho = parseFloat(materialAncho.value) || 0;
+    const alto  = parseFloat(materialAlto.value) || 0;
+
+    if(!ancho || !alto){
+        alert("Ingresa ancho y alto para modo pliego.");
+        return;
+    }
+
+    const cortes = obtenerCortes();
+
+    if(cortes.length === 0){
+        alert("Ingresa al menos un corte.");
+        return;
+    }
+
+    const resultado = motorPliego(ancho, alto, cortes);
+
+    dibujarPliego(ancho, alto, resultado.colocadas);
+    mostrarResultadosPliego(ancho, alto, resultado);
+}
+
+// ================= MOTOR PLIEGO (VERSIÓN AGRESIVA 2.0) =================
+
+function motorPliego(pliegoAncho, pliegoAlto, cortes) {
+    const areaTotal = pliegoAncho * pliegoAlto;
+    
+    // 1. Clasificar piezas
+    let obligatorias = [];
+    let infinitas = [];
+
+    cortes.forEach((c, index) => {
+        if (c.cantidad > 0) {
+            for (let i = 0; i < c.cantidad; i++) {
+                obligatorias.push({ w: c.w, h: c.h, id: index });
+            }
+        } else {
+            infinitas.push({ w: c.w, h: c.h, id: index });
+        }
+    });
+
+    if (obligatorias.length === 0 && infinitas.length === 0) return { colocadas: [], cantidad: 0, areaUsada: 0, desperdicio: areaTotal };
+
+    // 2. Generar variaciones de corte (La lógica "Agresiva")
+    let mejoresColocadas = [];
+
+    // Probamos dividir el pliego en diferentes puntos (X e Y)
+    // para mezclar orientaciones normales y rotadas
+    const piezasBase = obligatorias.length > 0 ? obligatorias[0] : infinitas[0];
+    
+    // Escenarios de división agresiva
+    const variantes = [
+        ...generarVariantesAgresivas(pliegoAncho, pliegoAlto, obligatorias, infinitas),
+        ...generarVariantesAgresivas(pliegoAlto, pliegoAncho, obligatorias, infinitas) // Pliego rotado
+    ];
+
+    variantes.forEach(colocadas => {
+        if (colocadas.length > mejoresColocadas.length) {
+            mejoresColocadas = colocadas;
+        }
+    });
+
+    return evaluarEscenario(mejoresColocadas, areaTotal);
+}
+
+function generarVariantesAgresivas(W, H, obligatorias, infinitas) {
+    let variantes = [];
+    const p = obligatorias.length > 0 ? obligatorias[0] : infinitas[0];
+
+    // Probamos divisiones en el eje X (Verticales)
+    for (let xDiv = 0; xDiv <= W; xDiv += Math.max(1, p.w / 2)) { 
+        variantes.push(llenarZonas(W, H, xDiv, true, [...obligatorias], infinitas));
+    }
+
+    // Probamos divisiones en el eje Y (Horizontales)
+    for (let yDiv = 0; yDiv <= H; yDiv += Math.max(1, p.h / 2)) {
+        variantes.push(llenarZonas(W, H, yDiv, false, [...obligatorias], infinitas));
+    }
+
+    return variantes;
+}
+
+function llenarZonas(W, H, div, esVertical, obligatorias, infinitas) {
+    let colocadas = [];
+    
+    // Definimos dos zonas según la división
+    let zona1 = esVertical ? {w: div, h: H, x: 0, y: 0} : {w: W, h: div, x: 0, y: 0};
+    let zona2 = esVertical ? {w: W - div, h: H, x: div, y: 0} : {w: W, h: H - div, x: 0, y: div};
+
+    // Llenamos Zona 1 (Normal) y luego Zona 2 (Rotada)
+    colocadas = colocadas.concat(rellenarEspacio(zona1, obligatorias, infinitas, false));
+    colocadas = colocadas.concat(rellenarEspacio(zona2, obligatorias, infinitas, true));
+
+    return colocadas;
+}
+
+function rellenarEspacio(zona, obligatorias, infinitas, rotar) {
+    let v = [];
+    let y = 0;
+    
+    while (y < zona.h) {
+        let x = 0;
+        let alturaFila = 0;
+        while (x < zona.w) {
+            let p = null;
+            let esRotada = rotar;
+
+            // Buscar obligatoria
+            let idx = obligatorias.findIndex(o => {
+                if (!rotar) return o.w <= (zona.w - x) && o.h <= (zona.h - y);
+                return o.h <= (zona.w - x) && o.w <= (zona.h - y);
+            });
+
+            if (idx !== -1) {
+                p = obligatorias.splice(idx, 1)[0];
+            } else if (infinitas.length > 0) {
+                p = infinitas[0];
+            }
+
+            if (p) {
+                let finalW = rotar ? p.h : p.w;
+                let finalH = rotar ? p.w : p.h;
+                
+                if (x + finalW <= zona.w && y + finalH <= zona.h) {
+                    v.push({x: zona.x + x, y: zona.y + y, w: finalW, h: finalH});
+                    x += finalW;
+                    alturaFila = Math.max(alturaFila, finalH);
+                } else break;
+            } else break;
+        }
+        if (alturaFila === 0) break;
+        y += alturaFila;
+    }
+    return v;
+}
+
+function evaluarEscenario(colocadas, areaTotal) {
+    let areaUsada = 0;
+    colocadas.forEach(p => areaUsada += p.w * p.h);
+    return {
+        colocadas,
+        cantidad: colocadas.length,
+        areaUsada,
+        desperdicio: areaTotal - areaUsada
+    };
+}
+// ================= UTIL =================
+
+function obtenerCortes(){
+    let cortes = [];
+    document.querySelectorAll("#listaCortes > div").forEach(div=>{
+        const w = parseFloat(div.querySelector(".cAncho").value)||0;
+        const h = parseFloat(div.querySelector(".cAlto").value)||0;
+        const cantidad = parseInt(div.querySelector(".cCant").value)||0;
+        if(w && h) cortes.push({w,h,cantidad});
+    });
+    return cortes;
+}
+
+// ================= DIBUJO =================
+
+function dibujarPliego(ancho, alto, piezas){
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const scale = Math.min(canvas.width/ancho, canvas.height/alto);
+
+    ctx.fillStyle="#f8d7da";
+    ctx.fillRect(0,0,ancho*scale,alto*scale);
+    ctx.strokeRect(0,0,ancho*scale,alto*scale);
+
+    piezas.forEach(p=>{
+        ctx.fillStyle="#87CEEB";
+        ctx.fillRect(p.x*scale,p.y*scale,p.w*scale,p.h*scale);
+        ctx.strokeStyle="#1f4e79";
+        ctx.strokeRect(p.x*scale,p.y*scale,p.w*scale,p.h*scale);
+    });
+}
+
+function mostrarResultadosPliego(ancho, alto, r){
+    const horiz = r.colocadas.filter(p => p.w > p.h).length; // Asumiendo que W > H es horizontal
+    const vert = r.colocadas.filter(p => p.w <= p.h).length;
+
+    resultados.innerHTML = `
+        <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background: #fff;">
+            <strong style="font-size: 18px; color: #2c3e50;">Total piezas: ${r.cantidad}</strong><br><hr>
+            <strong>Horizontales:</strong> ${horiz}<br>
+            <strong>Verticales:</strong> ${vert}<br><br>
+            <strong>Eficiencia:</strong> <span style="color: green;">${((r.areaUsada/(ancho*alto))*100).toFixed(2)}%</span><br>
+            <strong>Desperdicio:</strong> <span style="color: red;">${r.desperdicio.toFixed(2)} cm²</span>
+        </div>
+    `;
+}
+
+// ================= ROLLO (placeholder) =================
+
+function calcularRollo(){
+    resultados.innerHTML = "<strong>Motor de rollo en construcción...</strong>";
+}
+
+</script>
+
+</body>
+</html>

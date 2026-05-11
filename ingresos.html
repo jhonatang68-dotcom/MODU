@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GRapp - Ingresos</title>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; }
+header {
+  background:#111; color:#fff; padding:15px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.left { display:flex; align-items:center; gap:15px; }
+.home-icon { width:22px; height:22px; fill:#f2f2f2; cursor:pointer; }
+button {
+  padding:6px 12px; border:none; border-radius:5px;
+  background:#3498db; color:#fff; cursor:pointer;
+}
+.anular { background:#e74c3c; }
+.container { padding:20px; }
+.periodo { font-size:18px; font-weight:bold; margin-bottom:10px; }
+.total { font-size:22px; font-weight:bold; margin-bottom:15px; color: #2c3e50; }
+table { width:100%; border-collapse:collapse; background:#fff; margin-top: 15px; }
+th, td { padding:12px; border-bottom:1px solid #ddd; text-align: left; }
+th { background:#eee; }
+.anulado { color:red; font-weight:bold; }
+.actions { display:flex; gap:8px; }
+
+#buscador {
+    height: 35px;
+    padding: 4px 12px;
+    font-size: 14px;
+    width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.filtros-historial {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ebedef;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.status-nube { font-size: 12px; color: #3498db; display: none; margin-bottom: 10px; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="left">
+    <svg class="home-icon" onclick="location.href='index.html'"
+      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+    </svg>
+    <span>Ingresos</span>
+  </div>
+  <div class="actions">
+        <button style="background: #2ecc71;" onclick="sincronizarIngresos()">🔄 Sincronizar</button>
+        <button onclick="location.href='nuevo_ingreso.html'">+ Crear Ingreso</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="periodo" id="periodo">Período: Cargando...</div>
+  <div id="statusNube" class="status-nube">Buscando nuevos ingresos en la nube...</div>
+
+  <div class="filtros-historial">
+    <input id="buscador" placeholder="Buscar recibo, cliente, descripción...">
+    
+    <label style="margin-left: 20px;">Filtrar Mes:</label>
+    <select id="selectorMes" onchange="pintar()">
+        <option value="1">Enero</option>
+        <option value="2">Febrero</option>
+        <option value="3">Marzo</option>
+        <option value="4">Abril</option>
+        <option value="5">Mayo</option>
+        <option value="6">Junio</option>
+        <option value="7">Julio</option>
+        <option value="8">Agosto</option>
+        <option value="9">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+    </select>
+    
+    <select id="selectorAnio" onchange="pintar()">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+    </select>
+    <button style="background: #95a5a6;" onclick="volverAlActual()">Hoy</button>
+  </div>
+
+  <div class="total" id="totalIngresos"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th>Descripción</th>
+        <th>Cuenta</th>
+        <th>Valor</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody id="tabla"></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+    authDomain: "modu-6b2b5.firebaseapp.com",
+    projectId: "modu-6b2b5",
+    storageBucket: "modu-6b2b5.firebasestorage.app",
+    messagingSenderId: "139925953689",
+    appId: "1:139925953689:web:6f55990a882e4d652bac08"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.sincronizarIngresos = async () => {
+    const status = document.getElementById("statusNube");
+    status.style.display = "block";
+    try {
+      const querySnapshot = await getDocs(collection(db, "ingresos"));
+      const listNube = [];
+      querySnapshot.forEach((doc) => {
+        listNube.push(doc.data());
+      });
+
+      if(listNube.length > 0) {
+        localStorage.setItem("ingresos", JSON.stringify(listNube));
+        alert("¡Ingresos actualizados desde la nube!");
+        location.reload(); 
+      }
+    } catch (e) {
+      console.error("Error:", e);
+    }
+    status.style.display = "none";
+  }
+</script>
+
+<script>
+const hoy = new Date();
+const mesActual = hoy.getMonth() + 1;
+const anioActual = hoy.getFullYear();
+
+document.getElementById("selectorMes").value = mesActual;
+document.getElementById("selectorAnio").value = anioActual;
+
+function formatearFecha(fecha) {
+    if (!fecha) return "-";
+    const partes = fecha.split("-");
+    if(partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    return fecha;
+}
+
+function volverAlActual() {
+    document.getElementById("selectorMes").value = mesActual;
+    document.getElementById("selectorAnio").value = anioActual;
+    pintar();
+}
+
+let ingresos = JSON.parse(localStorage.getItem("ingresos")) || [];
+let cuentas  = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+const tabla = document.getElementById("tabla");
+const buscador = document.getElementById("buscador");
+buscador.addEventListener("input", pintar);
+const totalDiv = document.getElementById("totalIngresos");
+
+function pintar() {
+    tabla.innerHTML = "";
+    let total = 0;
+
+    const mesSeleccionado = parseInt(document.getElementById("selectorMes").value);
+    const anioSeleccionado = parseInt(document.getElementById("selectorAnio").value);
+    const texto = buscador.value.toLowerCase();
+
+    const nombreMesElegido = document.querySelector(`#selectorMes option[value="${mesSeleccionado}"]`).text;
+    document.getElementById("periodo").innerText = `Viendo: ${nombreMesElegido} ${anioSeleccionado}`;
+
+    [...ingresos]
+      .filter(i => i.mes === mesSeleccionado && i.anio === anioSeleccionado) 
+      .filter(i => 
+          (i.recibo && i.recibo.toString().includes(texto)) ||
+          (i.cliente && i.cliente.toLowerCase().includes(texto)) ||
+          (i.descripcion && i.descripcion.toLowerCase().includes(texto)) ||
+          (i.cuenta && i.cuenta.toLowerCase().includes(texto)) ||
+          (i.valor && i.valor.toString().includes(texto))
+      )
+      .sort((a, b) => b.id - a.id)
+      .forEach(i => {
+          if (i.estado === "ACTIVO") total += Number(i.valor);
+
+          tabla.innerHTML += `
+            <tr>
+              <td>${i.recibo}</td>
+              <td>${formatearFecha(i.fecha)}</td>
+              <td>${i.cliente}</td>
+              <td>${i.descripcion}</td>
+              <td>${i.cuenta}</td>
+              <td>$ ${Number(i.valor).toLocaleString()}</td>
+              <td class="${i.estado==='ANULADO'?'anulado':''}">${i.estado}</td>
+              <td>
+                ${i.estado==="ACTIVO" 
+                  ? `<button class="anular" onclick="anular(${i.id})">Anular</button>` 
+                  : ``}
+              </td>
+            </tr>`;
+      });
+
+    totalDiv.innerText = `TOTAL INGRESOS DEL PERÍODO: $ ${total.toLocaleString()}`;
+}
+
+function anular(id){
+  if(!confirm("¿Seguro que deseas ANULAR este recibo?")) return;
+  const ingreso = ingresos.find(i => i.id === id);
+  if(!ingreso) return;
+
+  cuentas = cuentas.map(c =>
+    c.nombre === ingreso.cuenta
+      ? { ...c, saldo: Number(c.saldo) - Number(ingreso.valor) }
+      : c
+  );
+
+  ingresos = ingresos.map(i =>
+    i.id === id ? { ...i, estado:"ANULADO" } : i
+  );
+
+  localStorage.setItem("ingresos", JSON.stringify(ingresos));
+  localStorage.setItem("cuentas", JSON.stringify(cuentas));
+  pintar();
+}
+
+pintar();
+</script>
+
+</body>
+</html>

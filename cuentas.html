@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GRapp - Cuentas · MODU</title>
+
+<style>
+body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
+header {
+    background: #111; color: white; padding: 15px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.left { display: flex; align-items: center; gap: 15px; }
+.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; transition: 0.2s; }
+.home-icon:hover { fill: #3498db; }
+
+button { padding: 8px 14px; background: #3498db; border: none; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; }
+.btn-sincro { background: #2ecc71; margin-right: 10px; }
+.eliminar { background: #e74c3c; }
+
+.container { padding: 20px; max-width: 800px; margin: auto; }
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+th { background: #f8f9fa; color: #7f8c8d; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+
+.total-card {
+    background: #2c3e50; color: white; padding: 20px;
+    border-radius: 8px; margin-top: 20px; display: flex;
+    justify-content: space-between; align-items: center;
+}
+.total-label { font-size: 14px; opacity: 0.8; }
+.total-valor { font-size: 24px; font-weight: 900; color: #2ecc71; }
+
+#statusNube { font-size: 12px; color: #e67e22; display: none; margin-bottom: 10px; text-align: center; font-weight: bold; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="left">
+        <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
+            <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+        </svg>
+        <span>Gestión de Cajas y Bancos</span>
+    </div>
+
+    <div>
+        <button class="btn-sincro" onclick="sincronizarCuentas()">🔄 Sincronizar</button>
+        <button onclick="location.href='nueva_cuenta.html'">+ Crear Cuenta</button>
+    </div>
+</header>
+
+<div class="container">
+    <div id="statusNube">Sincronizando saldos con la nube de Grafik...</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre de la Cuenta</th>
+                <th>Saldo Disponible</th>
+                <th style="text-align: center;">Acción</th>
+            </tr>
+        </thead>
+        <tbody id="tablaCuentas"></tbody>
+    </table>
+
+    <div class="total-card">
+        <span class="total-label">TOTAL DISPONIBLE EN EMPRESA:</span>
+        <span class="total-valor" id="totalGeneral">$ 0</span>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+    authDomain: "modu-6b2b5.firebaseapp.com",
+    projectId: "modu-6b2b5",
+    storageBucket: "modu-6b2b5.firebasestorage.app",
+    messagingSenderId: "139925953689",
+    appId: "1:139925953689:web:6f55990a882e4d652bac08"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.sincronizarCuentas = async () => {
+    const status = document.getElementById("statusNube");
+    status.style.display = "block";
+    try {
+      const snap = await getDocs(collection(db, "cuentas"));
+      const listNube = snap.docs.map(doc => doc.data());
+
+      if(listNube.length > 0) {
+        localStorage.setItem("cuentas", JSON.stringify(listNube));
+        alert("✅ Saldos de cuentas actualizados.");
+        location.reload();
+      }
+    } catch (e) {
+      alert("Error al conectar con la nube.");
+    }
+    status.style.display = "none";
+  }
+</script>
+
+<script>
+let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+function pintarCuentas() {
+    const tabla = document.getElementById("tablaCuentas");
+    const totalDiv = document.getElementById("totalGeneral");
+    tabla.innerHTML = "";
+    let total = 0;
+
+    cuentas.forEach(c => {
+        const saldoNum = Number(c.saldo) || 0;
+        total += saldoNum;
+
+        tabla.innerHTML += `
+        <tr>
+            <td><strong>${c.nombre}</strong></td>
+            <td style="color: ${saldoNum < 0 ? '#e74c3c' : '#2c3e50'}; font-weight: bold;">
+                $ ${saldoNum.toLocaleString('es-CO')}
+            </td>
+            <td style="text-align: center;">
+                <button class="eliminar" onclick="eliminar(${c.id})">Eliminar</button>
+            </td>
+        </tr>
+        `;
+    });
+
+    totalDiv.innerText = "$ " + total.toLocaleString('es-CO');
+}
+
+function eliminar(id) {
+    if (!confirm("¿Seguro que deseas eliminar esta cuenta? Los registros de egresos/ingresos no se borrarán, pero el saldo dejará de verse aquí.")) return;
+    cuentas = cuentas.filter(c => c.id !== id);
+    localStorage.setItem("cuentas", JSON.stringify(cuentas));
+    pintarCuentas();
+}
+
+pintarCuentas();
+</script>
+
+</body>
+</html>

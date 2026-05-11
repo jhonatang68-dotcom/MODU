@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>MODU - Gestión de Terceros</title>
+
+<style>
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; }
+.container {
+    max-width: 600px; margin: 40px auto; background: #fff;
+    padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+h2 { margin-bottom: 5px; color: #2c3e50; }
+label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #34495e; }
+
+input, select, textarea {
+    width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px;
+    border: 1px solid #dce4ec; box-sizing: border-box; font-size: 15px;
+}
+input:focus { outline: none; border-color: #3498db; }
+
+.mayus { text-transform: uppercase; }
+
+.riesgo {
+    display: flex; gap: 15px; margin-top: 10px; padding: 10px;
+    background: #f8f9fa; border-radius: 8px;
+}
+
+.botones { margin-top: 25px; display: flex; gap: 15px; }
+button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+
+.verde { color: #27ae60; }
+.amarillo { color: #f39c12; }
+.rojo { color: #e74c3c; }
+
+.guardar { background: #3498db; color: #fff; }
+.cancelar { background: #f1f2f6; color: #57606f; }
+.eliminar { background: #feebeb; color: #e74c3c; }
+
+.error { border: 2px solid #e74c3c !important; background: #fff5f5; }
+
+/* Producto solo para proveedor */
+#labelProducto, #productoServicio { display: none; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 id="titulo">Crear</h2>
+        <span style="font-weight: 900; color: #3498db; letter-spacing: -1px;">MODU</span>
+    </div>
+
+    <label>Nombre / Razón social *</label>
+    <input id="nombre" class="mayus" placeholder="EJ: FÉNIX ARTES GRÁFICAS">
+
+    <label>Tipo *</label>
+    <select id="tipo"></select>
+
+    <label>Celular *</label>
+    <input id="celular" type="tel" placeholder="300 000 0000">
+
+    <label>Riesgo de Cartera *</label>
+    <div class="riesgo" id="riesgoBox">
+        <label class="verde"><input type="radio" name="riesgo" value="bajo"> 🟢 Bajo</label>
+        <label class="amarillo"><input type="radio" name="riesgo" value="medio"> 🟡 Medio</label>
+        <label class="rojo"><input type="radio" name="riesgo" value="alto"> 🔴 Alto</label>
+    </div>
+
+    <label id="labelProducto">Producto / Servicio principal</label>
+    <input id="productoServicio" class="mayus" placeholder="Ej: PAPEL, ACRÍLICO, LONA">
+
+    <div class="botones">
+        <button class="guardar" onclick="guardar()">Guardar Registro</button>
+        <button class="cancelar" onclick="cancelar()">Volver</button>
+        <button class="eliminar" id="btnEliminar" style="display:none;" onclick="eliminar()">Eliminar</button>
+    </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const modo = params.get("modo"); 
+const idEditar = params.get("id");
+
+const tipoSelect = document.getElementById("tipo");
+const titulo = document.getElementById("titulo");
+const nombreInput = document.getElementById("nombre");
+
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+
+// Configuración inicial
+if (!idEditar) {
+    if (modo === "cliente") {
+        titulo.innerText = "Nuevo Cliente";
+        tipoSelect.innerHTML = `<option value="">Seleccione...</option><option value="Cliente">Cliente</option><option value="Tercero">Tercero</option>`;
+    }
+    if (modo === "proveedor") {
+        titulo.innerText = "Nuevo Proveedor";
+        tipoSelect.innerHTML = `<option value="Proveedor">Proveedor</option>`;
+        tipoSelect.value = "Proveedor";
+        tipoSelect.disabled = true;
+        document.getElementById("labelProducto").style.display = "block";
+        document.getElementById("productoServicio").style.display = "block";
+    }
+} else {
+    document.getElementById("btnEliminar").style.display = "block";
+    const c = clientes.find(x => x.id == idEditar);
+    if (c) {
+        nombreInput.value = c.nombre;
+        document.getElementById("celular").value = c.celular;
+        tipoSelect.innerHTML = `<option>${c.tipo}</option>`;
+        tipoSelect.disabled = true;
+        document.querySelectorAll("input[name='riesgo']").forEach(r => { if (r.value === c.riesgo) r.checked = true; });
+        if (c.tipo === "Proveedor") {
+            titulo.innerText = "Editar Proveedor";
+            document.getElementById("labelProducto").style.display = "block";
+            document.getElementById("productoServicio").style.display = "block";
+            document.getElementById("productoServicio").value = c.producto || "";
+        } else {
+            titulo.innerText = "Editar Cliente";
+        }
+    }
+}
+
+async function guardar() {
+    let valido = true;
+    document.querySelectorAll(".error").forEach(e => e.classList.remove("error"));
+
+    const nombreVal = nombreInput.value.trim().toUpperCase();
+    
+    if (!nombreVal) { nombreInput.classList.add("error"); valido = false; }
+    if (!document.getElementById("celular").value.trim()) { document.getElementById("celular").classList.add("error"); valido = false; }
+    const riesgo = document.querySelector("input[name='riesgo']:checked");
+    if (!riesgo) { document.getElementById("riesgoBox").classList.add("error"); valido = false; }
+    if (!valido) return;
+
+    if (!idEditar) {
+        const duplicadoEnTipo = clientes.find(c => 
+            c.nombre.toUpperCase() === nombreVal && 
+            c.tipo === tipoSelect.value
+        );
+
+        if (duplicadoEnTipo) {
+            nombreInput.classList.add("error");
+            return alert(`¡Pilas! "${nombreVal}" ya está registrado como ${tipoSelect.value}. No lo dupliques.`);
+        }
+    }
+
+    const data = {
+        id: idEditar ? Number(idEditar) : Date.now(),
+        nombre: nombreVal,
+        tipo: tipoSelect.value,
+        celular: document.getElementById("celular").value,
+        riesgo: riesgo.value,
+        producto: tipoSelect.value === "Proveedor" ? document.getElementById("productoServicio").value.toUpperCase() : "",
+        fechaRegistro: new Date().toISOString()
+    };
+
+    // --- AQUÍ LA CONEXIÓN A LA NUBE ---
+    // Determinamos la carpeta según el tipo
+    const coleccion = (data.tipo === "Proveedor") ? "proveedores" : "clientes";
+    await window.guardarDato(coleccion, data);
+
+    // Guardado local (el que ya tenías)
+    if (idEditar) {
+        clientes = clientes.map(c => c.id == idEditar ? data : c);
+    } else {
+        clientes.push(data);
+    }
+
+    localStorage.setItem("clientes", JSON.stringify(clientes));
+    cancelar();
+}
+
+function eliminar() {
+    if (!idEditar || !confirm("¿Seguro que deseas eliminar este registro?")) return;
+    clientes = clientes.filter(c => c.id != idEditar);
+    localStorage.setItem("clientes", JSON.stringify(clientes));
+    cancelar();
+}
+
+function cancelar() {
+    location.href = (tipoSelect.value === "Proveedor") ? "proveedores.html" : "clientes.html";
+}
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+    authDomain: "modu-6b2b5.firebaseapp.com",
+    projectId: "modu-6b2b5",
+    storageBucket: "modu-6b2b5.firebasestorage.app",
+    messagingSenderId: "139925953689",
+    appId: "1:139925953689:web:6f55990a882e4d652bac08"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.guardarDato = async (nombreColeccion, objetoDatos) => {
+    try {
+      await addDoc(collection(db, nombreColeccion), objetoDatos);
+      alert("¡CORONAMOS! Guardado en la nube de Grafik");
+    } catch (e) {
+      console.error("Error al subir:", e);
+    }
+  }
+</script>
+
+</body>
+</html>

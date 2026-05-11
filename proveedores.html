@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GRapp - Proveedores</title>
+
+<style>
+body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
+header { background: #111; color: white; padding: 15px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
+header button { background: #3498db; border: none; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+.container { padding: 20px; }
+input[type="text"] { padding: 10px; width: 300px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+th { background: #eee; }
+.riesgo-verde { color: green; font-weight: bold; }
+.riesgo-amarillo { color: orange; font-weight: bold; }
+.riesgo-rojo { color: red; font-weight: bold; }
+.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; transition: fill 0.2s ease; }
+.home-icon:hover { fill: #cccccc; }
+.sync-btn { background: #2ecc71; margin-left: 10px; }
+.status-nube { font-size: 12px; color: #3498db; display: none; margin-bottom: 10px; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
+            <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+        </svg>
+        <span>Proveedores</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="sync-btn" onclick="sincronizarProveedores()">🔄 Sincronizar</button>
+        <button onclick="location.href='nuevo_cliente.html?modo=proveedor'">+ Crear</button>
+    </div>
+</header>
+
+<div class="container">
+    <div id="statusNube" class="status-nube">Buscando proveedores en la nube de Grafik...</div>
+    <input type="text" id="buscar" placeholder="Buscar proveedor..." onkeyup="filtrar()">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Celular</th>
+                <th>Ciudad</th>
+                <th>Riesgo</th>
+            </tr>
+        </thead>
+        <tbody id="tablaClientes"></tbody>
+    </table>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+    authDomain: "modu-6b2b5.firebaseapp.com",
+    projectId: "modu-6b2b5",
+    storageBucket: "modu-6b2b5.firebasestorage.app",
+    messagingSenderId: "139925953689",
+    appId: "1:139925953689:web:6f55990a882e4d652bac08"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.sincronizarProveedores = async () => {
+    const status = document.getElementById("statusNube");
+    status.style.display = "block";
+    try {
+      const querySnapshot = await getDocs(collection(db, "proveedores"));
+      const listaNube = [];
+      querySnapshot.forEach((doc) => {
+        listaNube.push(doc.data());
+      });
+
+      if(listaNube.length > 0) {
+        // Obtenemos los clientes actuales para no borrar los que no son proveedores
+        let baseCompleta = JSON.parse(localStorage.getItem("clientes")) || [];
+        // Quitamos los proveedores viejos
+        baseCompleta = baseCompleta.filter(c => c.tipo !== "Proveedor");
+        // Metemos los de la nube
+        baseCompleta = [...baseCompleta, ...listaNube];
+        
+        localStorage.setItem("clientes", JSON.stringify(baseCompleta));
+        alert("¡Proveedores actualizados desde la nube!");
+        location.reload(); // Recarga para mostrar los cambios
+      }
+    } catch (e) {
+      console.error("Error:", e);
+    }
+    status.style.display = "none";
+  }
+</script>
+
+<script>
+// Carga inicial desde LocalStorage
+let base = JSON.parse(localStorage.getItem("clientes")) || [];
+
+// SOLO PROVEEDORES
+function obtenerProveedores() {
+    return base.filter(c => c.tipo && c.tipo.toLowerCase() === "proveedor");
+}
+
+function pintarProveedores(lista) {
+    const tabla = document.getElementById("tablaClientes");
+    tabla.innerHTML = "";
+
+    lista.forEach(c => {
+        let claseRiesgo = "riesgo-verde";
+        if (c.riesgo === "medio") claseRiesgo = "riesgo-amarillo";
+        if (c.riesgo === "alto") claseRiesgo = "riesgo-rojo";
+
+        tabla.innerHTML += `
+            <tr style="cursor:pointer" onclick="editarProveedor(${c.id})">
+                <td>${c.nombre}</td>
+                <td>${c.tipo}</td>
+                <td>${c.celular}</td>
+                <td>${c.ciudad || ""}</td>
+                <td class="${claseRiesgo}">${(c.riesgo || "").toUpperCase()}</td>
+            </tr>
+        `;
+    });
+}
+
+function filtrar() {
+    const texto = document.getElementById("buscar").value.toLowerCase();
+    const proveedores = obtenerProveedores();
+    const filtrados = proveedores.filter(c =>
+        c.nombre.toLowerCase().includes(texto) ||
+        c.celular.includes(texto)
+    );
+    pintarProveedores(filtrados);
+}
+
+// Pintar al cargar
+pintarProveedores(obtenerProveedores());
+
+function editarProveedor(id) {
+    window.location.href = "nuevo_cliente.html?id=" + id;
+}
+</script>
+
+</body>
+</html>

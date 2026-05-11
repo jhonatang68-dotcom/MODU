@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GRapp - Nueva Cuenta</title>
+
+<style>
+body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
+
+.container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+label { display: block; margin-top: 15px; font-weight: bold; color: #2c3e50; }
+
+input { 
+    width: 100%; 
+    padding: 10px; 
+    margin-top: 5px; 
+    box-sizing: border-box; 
+    border: 1px solid #dce4ec; 
+    border-radius: 6px;
+}
+
+.mayus { text-transform: uppercase; }
+
+.botones { margin-top: 25px; display: flex; gap: 15px; }
+
+button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.guardar { background: #3498db; color: white; }
+.cancelar { background: #bdc3c7; color: #fff; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Crear Cuenta</h2>
+
+    <label>Nombre de la Cuenta *</label>
+    <input id="nombre" class="mayus" placeholder="Ej: BANCOLOMBIA, CAJA MAYOR...">
+
+    <label>Saldo inicial *</label>
+    <input id="saldo" type="number" value="0">
+
+    <div class="botones">
+        <button class="guardar" id="btnGuardar" onclick="guardar()">Guardar</button>
+        <button class="cancelar" onclick="location.href='cuentas.html'">Cancelar</button>
+    </div>
+</div>
+
+<script>
+// Referencia al botón para evitar doble clic
+const btnGuardar = document.getElementById("btnGuardar");
+
+async function guardar() {
+    const nombreInput = document.getElementById("nombre");
+    const saldoInput = document.getElementById("saldo");
+
+    if (!nombreInput.value.trim()) return alert("El nombre de la cuenta es obligatorio");
+
+    btnGuardar.disabled = true;
+    btnGuardar.innerText = "Guardando...";
+
+    const nuevaCuenta = {
+        id: Date.now(),
+        nombre: nombreInput.value.toUpperCase().trim(),
+        saldo: Number(saldoInput.value)
+    };
+
+    // --- SUBIR A FIREBASE ---
+    if (window.guardarEnNube) {
+        await window.guardarEnNube('cuentas', nuevaCuenta);
+    }
+
+    // --- GUARDAR LOCAL ---
+    let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
+    cuentas.push(nuevaCuenta);
+    localStorage.setItem("cuentas", JSON.stringify(cuentas));
+
+    window.location.href = "cuentas.html";
+}
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+    authDomain: "modu-6b2b5.firebaseapp.com",
+    projectId: "modu-6b2b5",
+    storageBucket: "modu-6b2b5.firebasestorage.app",
+    messagingSenderId: "139925953689",
+    appId: "1:139925953689:web:6f55990a882e4d652bac08"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.guardarEnNube = async (coleccion, datos) => {
+    try {
+      await addDoc(collection(db, coleccion), datos);
+      console.log("Cuenta guardada en la nube");
+    } catch (e) {
+      console.error("Error en Firebase:", e);
+      alert("Error al guardar en la nube, pero se guardó localmente.");
+    }
+  }
+</script>
+
+</body>
+</html>

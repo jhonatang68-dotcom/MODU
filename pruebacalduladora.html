@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Optimizador de Corte Libre</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+input, textarea { width: 100%; margin-bottom: 10px; }
+button { padding: 8px 14px; background:#3498db; color:#fff; border:none; cursor:pointer; }
+.results { margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h2>Optimizador de Corte (Libre)</h2>
+
+<label>Medidas del pliego (ancho x alto)</label>
+<input id="pliego" placeholder="Ej: 200x300">
+
+<label>Piezas (cada línea: ancho x alto x cantidad)</label>
+<textarea id="piezas" rows="6"
+ placeholder="Ej:
+50x70x4
+30x40x3
+100x50x2"></textarea>
+
+<button onclick="calcular()">Calcular</button>
+
+<div class="results" id="results"></div>
+
+<script>
+function calcular() {
+    const pliego = document.getElementById("pliego").value;
+    const piezasText = document.getElementById("piezas").value.trim();
+    const results = document.getElementById("results");
+    results.innerHTML = "";
+
+    if(!pliego || !piezasText) {
+        results.innerText = "Usa pliego y lista de piezas";
+        return;
+    }
+
+    const [pw, ph] = pliego.split("x").map(n => parseFloat(n));
+    if(!pw || !ph) {
+        results.innerText = "Pliego inválido";
+        return;
+    }
+
+    const lines = piezasText.split("\n");
+    let totalUsadas = 0;
+    let totalArea = 0;
+    let desperdicio = 0;
+
+    // Área del pliego
+    const areaPliego = pw * ph;
+
+    lines.forEach(line => {
+        const [w, h, qty] = line.split("x").map(n => parseFloat(n));
+        if(!w || !h || !qty) return;
+
+        const areaPieza = w * h;
+        const maxPiezasTeoricas = Math.floor(areaPliego / areaPieza);
+
+        const caben = Math.min(qty, maxPiezasTeoricas);
+
+        totalUsadas += caben;
+        totalArea += caben * areaPieza;
+    });
+
+    desperdicio = areaPliego - totalArea;
+
+    results.innerHTML = `
+        <strong>Pliego:</strong> ${pw} x ${ph} = ${areaPliego} unidades²<br>
+        <strong>Total piezas usadas:</strong> ${totalUsadas}<br>
+        <strong>Área usada:</strong> ${totalArea} unidades²<br>
+        <strong>Desperdicio estimado:</strong> ${desperdicio} unidades²<br>
+    `;
+}
+</script>
+
+</body>
+</html>

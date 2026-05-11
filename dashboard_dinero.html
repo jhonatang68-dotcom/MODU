@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>GRapp · Dashboard Ejecutivo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; color: #1e293b; }
+
+header { background: #111; color: white; padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; }
+.home-icon { width: 22px; height: 22px; fill: white; cursor: pointer; }
+
+.container { padding: 20px; max-width: 1400px; margin: auto; }
+
+/* FILA DE INDICADORES (KPIs) */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+.kpi-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
+.kpi-card span { font-size: 14px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+.kpi-card strong { display: block; font-size: 26px; margin-top: 5px; }
+
+/* GRID DE GRÁFICAS */
+.charts-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 20px; }
+.chart-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 350px; }
+h3 { margin: 0 0 15px 0; font-size: 16px; color: #475569; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+
+.full-width { grid-column: span 2; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <svg class="home-icon" onclick="location.href='resultados.html'" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+    <strong style="flex:1; margin-left: 15px;">GRapp · Paneles de Control Financiero</strong>
+</header>
+
+<div class="container">
+    
+    <div class="kpi-row">
+        <div class="kpi-card"><span>Ingresos Mar</span><strong style="color:#2ecc71;" id="kpiIng">$ 0</strong></div>
+        <div class="kpi-card"><span>Egresos Mar</span><strong style="color:#e74c3c;" id="kpiEgr">$ 0</strong></div>
+        <div class="kpi-card"><span>Utilidad</span><strong style="color:#3498db;" id="kpiUtil">$ 0</strong></div>
+        <div class="kpi-card"><span>Eficiencia</span><strong style="color:#f1c40f;" id="kpiEfi">0%</strong></div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3>Flujo de Caja Histórico (Ingresos vs Gastos)</h3>
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Distribución por Cuenta</h3>
+            <canvas id="doughnutChart"></canvas>
+        </div>
+
+        <div class="chart-container full-width">
+            <h3>Rendimiento Semanal de Marzo</h3>
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- CARGA DE DATOS REALES ---
+const ingresos = JSON.parse(localStorage.getItem("ingresos")) || [];
+const egresos  = JSON.parse(localStorage.getItem("egresos"))  || [];
+const cuentas  = JSON.parse(localStorage.getItem("cuentas"))  || [];
+
+const mesActual = new Date().getMonth() + 1;
+const anioActual = new Date().getFullYear();
+
+let sumIng = 0, sumEgr = 0;
+ingresos.filter(i => i.mes === mesActual && i.estado === "ACTIVO").forEach(i => sumIng += i.valor);
+egresos.filter(e => e.mes === mesActual && e.estado === "ACTIVO").forEach(e => sumEgr += e.valor);
+
+const fmt = (v) => `$ ${Number(v).toLocaleString('es-CO')}`;
+document.getElementById("kpiIng").innerText = fmt(sumIng);
+document.getElementById("kpiEgr").innerText = fmt(sumEgr);
+document.getElementById("kpiUtil").innerText = fmt(sumIng - sumEgr);
+document.getElementById("kpiEfi").innerText = sumIng > 0 ? (( (sumIng - sumEgr) / sumIng ) * 100).toFixed(1) + "%" : "0%";
+
+// --- CONFIGURACIÓN DE GRÁFICAS ---
+
+// 1. Gráfica de Líneas (Simulada con tus datos)
+new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+        datasets: [
+            { label: 'Ingresos', data: [sumIng*0.2, sumIng*0.3, sumIng*0.4, sumIng*0.1], borderColor: '#2ecc71', tension: 0.3, fill: true, backgroundColor: 'rgba(46, 204, 113, 0.1)' },
+            { label: 'Egresos', data: [sumEgr*0.1, sumEgr*0.4, sumEgr*0.2, sumEgr*0.3], borderColor: '#e74c3c', tension: 0.3 }
+        ]
+    },
+    options: { maintainAspectRatio: false }
+});
+
+// 2. Gráfica de Dona (Por cuentas)
+new Chart(document.getElementById('doughnutChart'), {
+    type: 'doughnut',
+    data: {
+        labels: cuentas.map(c => c.nombre),
+        datasets: [{
+            data: cuentas.map(c => c.saldo),
+            backgroundColor: ['#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c']
+        }]
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+});
+
+// 3. Gráfica de Barras
+new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Marzo 2026'],
+        datasets: [
+            { label: 'Ingresos', data: [sumIng], backgroundColor: '#2ecc71' },
+            { label: 'Egresos', data: [sumEgr], backgroundColor: '#e74c3c' }
+        ]
+    },
+    options: { maintainAspectRatio: false }
+});
+</script>
+</body>
+</html>
