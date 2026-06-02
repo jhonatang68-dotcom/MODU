@@ -56,19 +56,28 @@
     <div id="P_LITO" class="panel">
         <button class="btn-add" onclick="abrirModal('LITO')">+ Crear Material</button>
         <h3>Litografía Digital</h3>
-        <table><tbody id="T_LITO"></tbody></table>
+        <table>
+            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
+            <tbody id="T_LITO"></tbody>
+        </table>
     </div>
 
     <div id="P_LASER" class="panel">
         <button class="btn-add" onclick="abrirModal('LASER')">+ Crear Material</button>
         <h3>Corte Láser / Router</h3>
-        <table><tbody id="T_LASER"></tbody></table>
+        <table>
+            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
+            <tbody id="T_LASER"></tbody>
+        </table>
     </div>
 
     <div id="P_SUBLI" class="panel">
         <button class="btn-add" onclick="abrirModal('SUBLI')">+ Crear Material</button>
         <h3>Sublimación</h3>
-        <table><tbody id="T_SUBLI"></tbody></table>
+        <table>
+            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
+            <tbody id="T_SUBLI"></tbody>
+        </table>
     </div>
 </div>
 
@@ -98,7 +107,6 @@
 </div>
 
 <script type="module">
-    // INTEGRACIÓN FIREBASE PARA TUS TARIFAS
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -116,17 +124,19 @@
 
     window.sincronizarNube = async () => {
         try {
-            // 1. Subir locales a la nube
             const locales = JSON.parse(localStorage.getItem("materiales_modu")) || [];
+            if (locales.length === 0) {
+                alert("⚠️ No hay materiales locales para subir. Revisa primero que aparezcan en pantalla.");
+                return;
+            }
             for (let m of locales) {
                 await setDoc(doc(dbCloud, "tarifario", m.id.toString()), m);
             }
-            // 2. Descargar todo para asegurar paridad
             const querySnapshot = await getDocs(collection(dbCloud, "tarifario"));
             const listaNube = querySnapshot.docs.map(doc => doc.data());
             localStorage.setItem("materiales_modu", JSON.stringify(listaNube));
             
-            alert("✅ Tarifas de Grafik sincronizadas en todos los dispositivos.");
+            alert("✅ Tarifas de Grafik sincronizadas con éxito en la nube de Firebase.");
             location.reload();
         } catch (e) {
             console.error(e);
@@ -162,8 +172,11 @@
         } else {
             document.getElementById('tituloModal').innerText = "Nuevo Material";
             document.getElementById('nombre').value = "";
+            document.getElementById('unidad').value = "cm2";
             document.getElementById('pCli').value = 0;
             document.getElementById('mCli').value = 0;
+            document.getElementById('pTer').value = 0;
+            document.getElementById('mTer').value = 0;
         }
     }
 
@@ -197,7 +210,8 @@
 
         db.forEach(m => {
             let lin = m.linea;
-            // Limpieza de nombres por si vienen de versiones viejas
+            if(!lin) return; // Si no tiene línea, se lo salta para no dañar nada
+            
             if(lin.includes("Formato")) lin = "GF";
             if(lin.includes("Litografia")) lin = "LITO";
             if(lin.includes("Laser")) lin = "LASER";
@@ -205,11 +219,17 @@
 
             let tabla = document.getElementById('T_' + lin);
             if(tabla) {
+                // Blindaje contra valores vacíos (undefined) antes del toLocaleString
+                let precioCli = (m.pCli !== undefined && m.pCli !== null) ? m.pCli.toLocaleString() : "0";
+                let minCli = (m.mCli !== undefined && m.mCli !== null) ? m.mCli.toLocaleString() : "0";
+                let precioTer = (m.pTer !== undefined && m.pTer !== null) ? m.pTer.toLocaleString() : "0";
+                let minTer = (m.mTer !== undefined && m.mTer !== null) ? m.mTer.toLocaleString() : "0";
+
                 tabla.innerHTML += `<tr>
-                    <td><b>${m.nombre}</b></td>
-                    <td><span style="color:#7f8c8d">${m.unidad}</span></td>
-                    <td><b>$${m.pCli.toLocaleString()}</b> <br><small>Mín: $${m.mCli.toLocaleString()}</small></td>
-                    <td><b>$${m.pTer.toLocaleString()}</b> <br><small>Mín: $${m.mTer.toLocaleString()}</small></td>
+                    <td><b>${m.nombre || 'Sin Nombre'}</b></td>
+                    <td><span style="color:#7f8c8d">${m.unidad || 'und'}</span></td>
+                    <td><b>$${precioCli}</b> <br><small>Mín: $${minCli}</small></td>
+                    <td><b>$${precioTer}</b> <br><small>Mín: $${minTer}</small></td>
                     <td>
                         <button onclick="abrirModal('${lin}', ${m.id})" style="border:none; background:#f39c12; color:white; padding:5px 8px; border-radius:4px; cursor:pointer;">✎</button>
                         <button onclick="borrar(${m.id})" style="border:none; background:#e74c3c; color:white; padding:5px 8px; border-radius:4px; cursor:pointer;">🗑</button>
