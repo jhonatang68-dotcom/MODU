@@ -48,8 +48,8 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 id="titulo">Crear</h2>
-        <span style="font-weight: 900; color: #3498db; letter-spacing: -1px;">MODU</span>
+        <h2 id="titulo">Cargando...</h2>
+        <span style="font-weight: 900; color: #3498db; letter-spacing: -1px;">Grafik</span>
     </div>
 
     <label>Nombre / Razón social *</label>
@@ -78,116 +78,9 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
     </div>
 </div>
 
-<script>
-const params = new URLSearchParams(window.location.search);
-const modo = params.get("modo"); 
-const idEditar = params.get("id");
-
-const tipoSelect = document.getElementById("tipo");
-const titulo = document.getElementById("titulo");
-const nombreInput = document.getElementById("nombre");
-
-let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
-
-// Configuración inicial
-if (!idEditar) {
-    if (modo === "cliente") {
-        titulo.innerText = "Nuevo Cliente";
-        tipoSelect.innerHTML = `<option value="">Seleccione...</option><option value="Cliente">Cliente</option><option value="Tercero">Tercero</option>`;
-    }
-    if (modo === "proveedor") {
-        titulo.innerText = "Nuevo Proveedor";
-        tipoSelect.innerHTML = `<option value="Proveedor">Proveedor</option>`;
-        tipoSelect.value = "Proveedor";
-        tipoSelect.disabled = true;
-        document.getElementById("labelProducto").style.display = "block";
-        document.getElementById("productoServicio").style.display = "block";
-    }
-} else {
-    document.getElementById("btnEliminar").style.display = "block";
-    const c = clientes.find(x => x.id == idEditar);
-    if (c) {
-        nombreInput.value = c.nombre;
-        document.getElementById("celular").value = c.celular;
-        tipoSelect.innerHTML = `<option>${c.tipo}</option>`;
-        tipoSelect.disabled = true;
-        document.querySelectorAll("input[name='riesgo']").forEach(r => { if (r.value === c.riesgo) r.checked = true; });
-        if (c.tipo === "Proveedor") {
-            titulo.innerText = "Editar Proveedor";
-            document.getElementById("labelProducto").style.display = "block";
-            document.getElementById("productoServicio").style.display = "block";
-            document.getElementById("productoServicio").value = c.producto || "";
-        } else {
-            titulo.innerText = "Editar Cliente";
-        }
-    }
-}
-
-async function guardar() {
-    let valido = true;
-    document.querySelectorAll(".error").forEach(e => e.classList.remove("error"));
-
-    const nombreVal = nombreInput.value.trim().toUpperCase();
-    
-    if (!nombreVal) { nombreInput.classList.add("error"); valido = false; }
-    if (!document.getElementById("celular").value.trim()) { document.getElementById("celular").classList.add("error"); valido = false; }
-    const riesgo = document.querySelector("input[name='riesgo']:checked");
-    if (!riesgo) { document.getElementById("riesgoBox").classList.add("error"); valido = false; }
-    if (!valido) return;
-
-    if (!idEditar) {
-        const duplicadoEnTipo = clientes.find(c => 
-            c.nombre.toUpperCase() === nombreVal && 
-            c.tipo === tipoSelect.value
-        );
-
-        if (duplicadoEnTipo) {
-            nombreInput.classList.add("error");
-            return alert(`¡Pilas! "${nombreVal}" ya está registrado como ${tipoSelect.value}. No lo dupliques.`);
-        }
-    }
-
-    const data = {
-        id: idEditar ? Number(idEditar) : Date.now(),
-        nombre: nombreVal,
-        tipo: tipoSelect.value,
-        celular: document.getElementById("celular").value,
-        riesgo: riesgo.value,
-        producto: tipoSelect.value === "Proveedor" ? document.getElementById("productoServicio").value.toUpperCase() : "",
-        fechaRegistro: new Date().toISOString()
-    };
-
-    // --- AQUÍ LA CONEXIÓN A LA NUBE ---
-    // Determinamos la carpeta según el tipo
-    const coleccion = (data.tipo === "Proveedor") ? "proveedores" : "clientes";
-    await window.guardarDato(coleccion, data);
-
-    // Guardado local (el que ya tenías)
-    if (idEditar) {
-        clientes = clientes.map(c => c.id == idEditar ? data : c);
-    } else {
-        clientes.push(data);
-    }
-
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    cancelar();
-}
-
-function eliminar() {
-    if (!idEditar || !confirm("¿Seguro que deseas eliminar este registro?")) return;
-    clientes = clientes.filter(c => c.id != idEditar);
-    localStorage.setItem("clientes", JSON.stringify(clientes));
-    cancelar();
-}
-
-function cancelar() {
-    location.href = (tipoSelect.value === "Proveedor") ? "proveedores.html" : "clientes.html";
-}
-</script>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -201,14 +94,137 @@ function cancelar() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.guardarDato = async (nombreColeccion, objetoDatos) => {
-    try {
-      await addDoc(collection(db, nombreColeccion), objetoDatos);
-      alert("¡CORONAMOS! Guardado en la nube de Grafik");
-    } catch (e) {
-      console.error("Error al subir:", e);
-    }
+  const params = new URLSearchParams(window.location.search);
+  const modo = params.get("modo"); 
+  const idEditar = params.get("id");
+
+  const tipoSelect = document.getElementById("tipo");
+  const titulo = document.getElementById("titulo");
+  const nombreInput = document.getElementById("nombre");
+
+  // --- INICIALIZACIÓN ---
+  async function cargarDatos() {
+      if (!idEditar) {
+          // MODO CREAR NUEVO
+          if (modo === "cliente" || !modo) {
+              titulo.innerText = "Nuevo Cliente";
+              tipoSelect.innerHTML = `<option value="">Seleccione...</option><option value="cliente">Cliente</option><option value="tercero">Tercero</option>`;
+          } else if (modo === "proveedor") {
+              titulo.innerText = "Nuevo Proveedor";
+              tipoSelect.innerHTML = `<option value="proveedor">Proveedor</option>`;
+              tipoSelect.value = "proveedor";
+              tipoSelect.disabled = true;
+              document.getElementById("labelProducto").style.display = "block";
+              document.getElementById("productoServicio").style.display = "block";
+          }
+      } else {
+          // MODO EDITAR DESDE FIREBASE
+          document.getElementById("btnEliminar").style.display = "block";
+          titulo.innerText = "Cargando datos...";
+          
+          try {
+              // Asumimos que todos están en la colección "clientes" por ahora
+              const docRef = doc(db, "clientes", idEditar);
+              const docSnap = await getDoc(docRef);
+
+              if (docSnap.exists()) {
+                  const c = docSnap.data();
+                  nombreInput.value = c.nombre || "";
+                  document.getElementById("celular").value = c.celular || "";
+                  
+                  const tipoActual = (c.tipo || "cliente").toLowerCase();
+                  tipoSelect.innerHTML = `<option value="${tipoActual}">${tipoActual.toUpperCase()}</option>`;
+                  tipoSelect.disabled = true;
+
+                  if(c.riesgo) {
+                      const radio = document.querySelector(`input[name='riesgo'][value='${c.riesgo.toLowerCase()}']`);
+                      if(radio) radio.checked = true;
+                  }
+
+                  if (tipoActual === "proveedor") {
+                      titulo.innerText = "Editar Proveedor";
+                      document.getElementById("labelProducto").style.display = "block";
+                      document.getElementById("productoServicio").style.display = "block";
+                      document.getElementById("productoServicio").value = c.producto || "";
+                  } else {
+                      titulo.innerText = "Editar Cliente";
+                  }
+              } else {
+                  alert("El registro no existe en la base de datos.");
+                  cancelar();
+              }
+          } catch (error) {
+              console.error("Error al cargar:", error);
+              alert("Error al leer la base de datos.");
+          }
+      }
   }
+
+  cargarDatos();
+
+  // --- FUNCIONES GLOBALES ---
+  window.guardar = async () => {
+      let valido = true;
+      document.querySelectorAll(".error").forEach(e => e.classList.remove("error"));
+
+      const nombreVal = nombreInput.value.trim().toUpperCase();
+      
+      if (!nombreVal) { nombreInput.classList.add("error"); valido = false; }
+      if (!document.getElementById("celular").value.trim()) { document.getElementById("celular").classList.add("error"); valido = false; }
+      const riesgo = document.querySelector("input[name='riesgo']:checked");
+      if (!riesgo) { document.getElementById("riesgoBox").classList.add("error"); valido = false; }
+      if (!valido) return;
+
+      const tipoFinal = tipoSelect.value.toLowerCase();
+      const coleccionDestino = "clientes"; // Guardamos todo en 'clientes' para no romper tu lista
+
+      const data = {
+          nombre: nombreVal,
+          tipo: tipoFinal,
+          celular: document.getElementById("celular").value,
+          riesgo: riesgo.value,
+          producto: tipoFinal === "proveedor" ? document.getElementById("productoServicio").value.toUpperCase() : "",
+          fechaActualizacion: new Date().toISOString()
+      };
+
+      try {
+          const btn = document.querySelector(".guardar");
+          btn.innerText = "Guardando...";
+          btn.disabled = true;
+
+          if (idEditar) {
+              // ACTUALIZAR EXISTENTE
+              await updateDoc(doc(db, coleccionDestino, idEditar), data);
+          } else {
+              // CREAR NUEVO
+              data.fechaRegistro = new Date().toISOString();
+              await addDoc(collection(db, coleccionDestino), data);
+          }
+          
+          cancelar();
+      } catch (error) {
+          console.error("Error al guardar:", error);
+          alert("Error al guardar en la nube.");
+          document.querySelector(".guardar").innerText = "Guardar Registro";
+          document.querySelector(".guardar").disabled = false;
+      }
+  };
+
+  window.eliminar = async () => {
+      if (!idEditar || !confirm("¿Seguro que deseas eliminar este registro para siempre?")) return;
+      
+      try {
+          await deleteDoc(doc(db, "clientes", idEditar));
+          cancelar();
+      } catch (error) {
+          console.error("Error al eliminar:", error);
+          alert("No se pudo eliminar.");
+      }
+  };
+
+  window.cancelar = () => {
+      location.href = "clientes.html";
+  };
 </script>
 
 </body>
