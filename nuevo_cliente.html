@@ -2,15 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<!-- La línea clave para que no se vea de lejos en el celular -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MODU - Gestión de Terceros</title>
 
 <style>
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
 .container {
     max-width: 600px; margin: 40px auto; background: #fff;
     padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
-h2 { margin-bottom: 5px; color: #2c3e50; }
+h2 { margin-top: 0; margin-bottom: 5px; color: #2c3e50; font-size: 22px; }
 label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #34495e; }
 
 input, select, textarea {
@@ -21,13 +23,16 @@ input:focus { outline: none; border-color: #3498db; }
 
 .mayus { text-transform: uppercase; }
 
+/* Caja de riesgo adaptativa */
 .riesgo {
-    display: flex; gap: 15px; margin-top: 10px; padding: 10px;
-    background: #f8f9fa; border-radius: 8px;
+    display: flex; gap: 15px; margin-top: 10px; padding: 12px;
+    background: #f8f9fa; border-radius: 8px; flex-wrap: wrap;
 }
+.riesgo label { margin-top: 0; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; }
 
-.botones { margin-top: 25px; display: flex; gap: 15px; }
-button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+/* Contenedor de botones */
+.botones { margin-top: 25px; display: flex; gap: 12px; }
+button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; }
 
 .verde { color: #27ae60; }
 .amarillo { color: #f39c12; }
@@ -41,6 +46,17 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
 /* Producto solo para proveedor */
 #labelProducto, #productoServicio { display: none; }
+
+/* CAMBIOS EXCLUSIVOS PARA CELULAR */
+@media (max-width: 480px) {
+    .container { margin: 15px; padding: 18px; border-radius: 10px; }
+    h2 { font-size: 18px; }
+    .riesgo { gap: 10px; justify-content: space-between; }
+    .riesgo label { font-size: 13px; }
+    /* En celular los botones se apilan uno abajo del otro para comodidad táctil */
+    .botones { flex-direction: column; gap: 10px; }
+    button { width: 100%; padding: 12px; }
+}
 </style>
 </head>
 
@@ -49,7 +65,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2 id="titulo">Cargando...</h2>
-        <span style="font-weight: 900; color: #3498db; letter-spacing: -1px;">Grafik</span>
+        <span style="font-weight: 900; color: #3498db; letter-spacing: -1px; font-size: 20px;">MODU</span>
     </div>
 
     <label>Nombre / Razón social *</label>
@@ -101,68 +117,64 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
   const tipoSelect = document.getElementById("tipo");
   const titulo = document.getElementById("titulo");
   const nombreInput = document.getElementById("nombre");
+  const celularInput = document.getElementById("celular");
+  const productoInput = document.getElementById("productoServicio");
 
-  // --- INICIALIZACIÓN ---
   async function cargarDatos() {
       if (!idEditar) {
-          // MODO CREAR NUEVO
           if (modo === "cliente" || !modo) {
               titulo.innerText = "Nuevo Cliente";
               tipoSelect.innerHTML = `<option value="">Seleccione...</option><option value="cliente">Cliente</option><option value="tercero">Tercero</option>`;
-          } else if (modo === "proveedor") {
+          }
+          if (modo === "proveedor") {
               titulo.innerText = "Nuevo Proveedor";
               tipoSelect.innerHTML = `<option value="proveedor">Proveedor</option>`;
               tipoSelect.value = "proveedor";
               tipoSelect.disabled = true;
               document.getElementById("labelProducto").style.display = "block";
-              document.getElementById("productoServicio").style.display = "block";
+              productoInput.style.display = "block";
           }
       } else {
-          // MODO EDITAR DESDE FIREBASE
           document.getElementById("btnEliminar").style.display = "block";
           titulo.innerText = "Cargando datos...";
           
           try {
-              // Asumimos que todos están en la colección "clientes" por ahora
-              const docRef = doc(db, "clientes", idEditar);
+              const docRef = doc(db, "clientes", idEditar); 
               const docSnap = await getDoc(docRef);
 
               if (docSnap.exists()) {
                   const c = docSnap.data();
                   nombreInput.value = c.nombre || "";
-                  document.getElementById("celular").value = c.celular || "";
+                  celularInput.value = c.celular || "";
                   
-                  const tipoActual = (c.tipo || "cliente").toLowerCase();
-                  tipoSelect.innerHTML = `<option value="${tipoActual}">${tipoActual.toUpperCase()}</option>`;
+                  const tipoGuardado = (c.tipo || "cliente").toLowerCase();
+                  tipoSelect.innerHTML = `<option value="${tipoGuardado}">${tipoGuardado.toUpperCase()}</option>`;
                   tipoSelect.disabled = true;
 
-                  if(c.riesgo) {
-                      const radio = document.querySelector(`input[name='riesgo'][value='${c.riesgo.toLowerCase()}']`);
-                      if(radio) radio.checked = true;
+                  if (c.riesgo) {
+                      const radioRiesgo = document.querySelector(`input[name='riesgo'][value='${c.riesgo.toLowerCase()}']`);
+                      if (radioRiesgo) radioRiesgo.checked = true;
                   }
 
-                  if (tipoActual === "proveedor") {
+                  if (tipoGuardado === "proveedor") {
                       titulo.innerText = "Editar Proveedor";
                       document.getElementById("labelProducto").style.display = "block";
-                      document.getElementById("productoServicio").style.display = "block";
-                      document.getElementById("productoServicio").value = c.producto || "";
+                      productoInput.style.display = "block";
+                      productoInput.value = c.producto || "";
                   } else {
                       titulo.innerText = "Editar Cliente";
                   }
               } else {
-                  alert("El registro no existe en la base de datos.");
+                  alert("El registro no existe.");
                   cancelar();
               }
           } catch (error) {
               console.error("Error al cargar:", error);
-              alert("Error al leer la base de datos.");
+              alert("Error cargando los datos.");
           }
       }
   }
 
-  cargarDatos();
-
-  // --- FUNCIONES GLOBALES ---
   window.guardar = async () => {
       let valido = true;
       document.querySelectorAll(".error").forEach(e => e.classList.remove("error"));
@@ -170,61 +182,58 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
       const nombreVal = nombreInput.value.trim().toUpperCase();
       
       if (!nombreVal) { nombreInput.classList.add("error"); valido = false; }
-      if (!document.getElementById("celular").value.trim()) { document.getElementById("celular").classList.add("error"); valido = false; }
+      if (!celularInput.value.trim()) { celularInput.classList.add("error"); valido = false; }
       const riesgo = document.querySelector("input[name='riesgo']:checked");
       if (!riesgo) { document.getElementById("riesgoBox").classList.add("error"); valido = false; }
       if (!valido) return;
 
-      const tipoFinal = tipoSelect.value.toLowerCase();
-      const coleccionDestino = "clientes"; // Guardamos todo en 'clientes' para no romper tu lista
-
       const data = {
           nombre: nombreVal,
-          tipo: tipoFinal,
-          celular: document.getElementById("celular").value,
+          tipo: tipoSelect.value,
+          celular: celularInput.value,
           riesgo: riesgo.value,
-          producto: tipoFinal === "proveedor" ? document.getElementById("productoServicio").value.toUpperCase() : "",
+          producto: tipoSelect.value === "proveedor" ? productoInput.value.toUpperCase() : "",
           fechaActualizacion: new Date().toISOString()
       };
 
-      try {
-          const btn = document.querySelector(".guardar");
-          btn.innerText = "Guardando...";
-          btn.disabled = true;
+      const btnGuardar = document.querySelector(".guardar");
+      btnGuardar.innerText = "Guardando...";
+      btnGuardar.disabled = true;
 
+      try {
           if (idEditar) {
-              // ACTUALIZAR EXISTENTE
-              await updateDoc(doc(db, coleccionDestino, idEditar), data);
+              const docRef = doc(db, "clientes", idEditar);
+              await updateDoc(docRef, data);
           } else {
-              // CREAR NUEVO
               data.fechaRegistro = new Date().toISOString();
-              await addDoc(collection(db, coleccionDestino), data);
+              await addDoc(collection(db, "clientes"), data);
           }
-          
           cancelar();
       } catch (error) {
           console.error("Error al guardar:", error);
-          alert("Error al guardar en la nube.");
-          document.querySelector(".guardar").innerText = "Guardar Registro";
-          document.querySelector(".guardar").disabled = false;
+          alert("Error al conectar con la nube.");
+          btnGuardar.innerText = "Guardar Registro";
+          btnGuardar.disabled = false;
       }
   };
 
   window.eliminar = async () => {
-      if (!idEditar || !confirm("¿Seguro que deseas eliminar este registro para siempre?")) return;
+      if (!idEditar || !confirm("¿Seguro que deseas eliminar este registro permanentemente de la nube?")) return;
       
       try {
           await deleteDoc(doc(db, "clientes", idEditar));
           cancelar();
       } catch (error) {
           console.error("Error al eliminar:", error);
-          alert("No se pudo eliminar.");
+          alert("No se pudo eliminar el registro.");
       }
   };
 
   window.cancelar = () => {
-      location.href = "clientes.html";
+      location.href = (tipoSelect.value === "proveedor") ? "proveedores.html" : "clientes.html";
   };
+
+  cargarDatos();
 </script>
 
 </body>
