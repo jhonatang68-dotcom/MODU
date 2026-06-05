@@ -2,37 +2,50 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>GRapp · Historial Mensual</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU · Historial Mensual</title>
 
 <style>
-body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f8; }
+body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; color: #334155; }
+
 header {
-    background: #111; color: white; padding: 14px;
+    background: #111; color: white; padding: 15px;
     display: flex; align-items: center; justify-content: space-between;
 }
 .header-left { display: flex; align-items: center; gap: 15px; }
-.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; }
-.container { padding: 20px; }
-h2 { margin-top: 0; color: #2c3e50; }
+.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; transition: 0.2s; }
+.home-icon:hover { fill: #3498db; }
+strong { font-size: 16px; }
 
-table {
-    width: 100%; border-collapse: collapse; background: white;
-    border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+.container { padding: 20px; max-width: 1000px; margin: auto; }
+h2 { margin-top: 0; color: #1e293b; font-size: 20px; margin-bottom: 20px; }
+
+/* Tabla responsiva */
+.tabla-responsiva { 
+    width: 100%; overflow-x: auto; background: white; 
+    border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; 
 }
-th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-th { background: #eee; font-size: 13px; text-transform: uppercase; }
+table { width: 100%; border-collapse: collapse; min-width: 600px; }
+th, td { padding: 15px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+th { background: #f8fafc; font-size: 12px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
+tr:hover { background: #f8fafc; }
+tr:last-child td { border-bottom: none; }
 
 .pos { color: #27ae60; font-weight: bold; }
 .neg { color: #e74c3c; font-weight: bold; }
 
 button {
     background: #3498db; color: white; border: none;
-    border-radius: 5px; padding: 8px 15px; cursor: pointer; font-weight: bold;
+    border-radius: 6px; padding: 8px 14px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s;
 }
-.btn-sincro { background: #2ecc71; margin-right: 10px; }
+button:hover { background: #2980b9; }
 
-/* Indicador de carga */
-#status { font-size: 12px; color: #3498db; margin-bottom: 10px; display: none; }
+@media (max-width: 480px) {
+    header { padding: 12px; }
+    strong { font-size: 14px; }
+    .container { padding: 15px; }
+    h2 { font-size: 18px; }
+}
 </style>
 </head>
 
@@ -40,35 +53,38 @@ button {
 
 <header>
     <div class="header-left">
-        <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
+        <svg class="home-icon" onclick="location.href='resultados.html'" viewBox="0 0 24 24">
             <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
         </svg>
-        <strong>Historial Mensual Grafik</strong>
+        <strong>Historial Financiero</strong>
     </div>
-    <button class="btn-sincro" onclick="sincronizarTodo()">🔄 Sincronizar Nube</button>
+    <span style="font-weight: 900; color: #3498db; letter-spacing: -1px; font-size: 18px;">MODU</span>
 </header>
 
 <div class="container">
-    <div id="status">Sincronizando datos con la nube...</div>
-    <h2>Resumen de Utilidades</h2>
+    <h2>Resumen de Utilidades por Mes</h2>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Mes / Período</th>
-                <th>Ingresos</th>
-                <th>Egresos</th>
-                <th>Resultado Neto</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody id="tablaHistorial"></tbody>
-    </table>
+    <div class="tabla-responsiva">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mes / Período</th>
+                    <th>Ingresos</th>
+                    <th>Egresos</th>
+                    <th>Resultado Neto</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tablaHistorial">
+                <tr><td colspan="5" style="text-align: center; color: #64748b;">Calculando historial desde la nube...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -82,89 +98,84 @@ button {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.sincronizarTodo = async () => {
-    document.getElementById("status").style.display = "block";
-    try {
-      // Traer Ingresos
-      const snapIng = await getDocs(collection(db, "ingresos"));
-      const listIng = snapIng.docs.map(doc => doc.data());
-      localStorage.setItem("ingresos", JSON.stringify(listIng));
+  let ingresosMemoria = [];
+  let egresosMemoria = [];
 
-      // Traer Egresos
-      const snapEgr = await getDocs(collection(db, "egresos"));
-      const listEgr = snapEgr.docs.map(doc => doc.data());
-      localStorage.setItem("egresos", JSON.stringify(listEgr));
+  // Escuchar ingresos y egresos en tiempo real
+  onSnapshot(collection(db, "ingresos"), (snapshot) => {
+      ingresosMemoria = snapshot.docs.map(doc => doc.data());
+      window.pintarHistorial();
+  });
 
-      alert("✅ Datos actualizados de Grafik.");
-      location.reload();
-    } catch (e) {
-      console.error(e);
-      alert("Error al sincronizar.");
-    }
-    document.getElementById("status").style.display = "none";
-  }
-</script>
+  onSnapshot(collection(db, "egresos"), (snapshot) => {
+      egresosMemoria = snapshot.docs.map(doc => doc.data());
+      window.pintarHistorial();
+  });
 
-<script>
-function pintar() {
-    const ingresos = JSON.parse(localStorage.getItem("ingresos")) || [];
-    const egresos  = JSON.parse(localStorage.getItem("egresos"))  || [];
-    const resumen = {};
+  window.pintarHistorial = () => {
+      // Si aún no cargan ambas bases, esperamos
+      if(ingresosMemoria.length === 0 && egresosMemoria.length === 0) return;
 
-    // Procesar Ingresos
-    ingresos.forEach(i => {
-        if (i.estado !== "ACTIVO" || !i.mes || !i.anio) return;
-        const clave = i.anio + "-" + i.mes;
-        if (!resumen[clave]) resumen[clave] = { mes: i.mes, anio: i.anio, ing: 0, egr: 0 };
-        resumen[clave].ing += Number(i.valor);
-    });
+      const resumen = {};
 
-    // Procesar Egresos
-    egresos.forEach(e => {
-        if (e.estado !== "ACTIVO" || !e.mes || !e.anio) return;
-        const clave = e.anio + "-" + e.mes;
-        if (!resumen[clave]) resumen[clave] = { mes: e.mes, anio: e.anio, ing: 0, egr: 0 };
-        resumen[clave].egr += Number(e.valor);
-    });
+      // 1. Procesar Ingresos de Firebase
+      ingresosMemoria.forEach(i => {
+          if (i.estado !== "ACTIVO" || !i.mes || !i.anio) return;
+          const clave = i.anio + "-" + String(i.mes).padStart(2, '0');
+          if (!resumen[clave]) resumen[clave] = { mes: i.mes, anio: i.anio, ing: 0, egr: 0 };
+          resumen[clave].ing += Number(i.valor);
+      });
 
-    const meses = Object.values(resumen).sort((a, b) => {
-        if (a.anio !== b.anio) return b.anio - a.anio;
-        return b.mes - a.mes;
-    });
+      // 2. Procesar Egresos de Firebase
+      egresosMemoria.forEach(e => {
+          if (e.estado !== "ACTIVO" || !e.mes || !e.anio) return;
+          const clave = e.anio + "-" + String(e.mes).padStart(2, '0');
+          if (!resumen[clave]) resumen[clave] = { mes: e.mes, anio: e.anio, ing: 0, egr: 0 };
+          resumen[clave].egr += Number(e.valor);
+      });
 
-    const tabla = document.getElementById("tablaHistorial");
-    tabla.innerHTML = "";
+      // Ordenar de más reciente a más antiguo
+      const meses = Object.values(resumen).sort((a, b) => {
+          if (a.anio !== b.anio) return b.anio - a.anio;
+          return b.mes - a.mes;
+      });
 
-    meses.forEach(m => {
-        const resultado = m.ing - m.egr;
-        const clase = resultado >= 0 ? "pos" : "neg";
-        
-        // Formato de nombre de mes "Mayo 2026"
-        const fechaObj = new Date(m.anio, m.mes - 1);
-        let nombreMes = fechaObj.toLocaleString("es-ES", { month: "long", year: "numeric" });
-        nombreMes = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+      const tabla = document.getElementById("tablaHistorial");
+      tabla.innerHTML = "";
 
-        tabla.innerHTML += `
-            <tr>
-                <td><strong>${nombreMes}</strong></td>
-                <td>$ ${m.ing.toLocaleString()}</td>
-                <td>$ ${m.egr.toLocaleString()}</td>
-                <td class="${clase}">$ ${resultado.toLocaleString()}</td>
-                <td>
-                    <button onclick="verMes(${m.mes}, ${m.anio})">Ver Detalle</button>
-                </td>
-            </tr>
-        `;
-    });
-}
+      if (meses.length === 0) {
+          tabla.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">No hay flujos financieros registrados aún.</td></tr>`;
+          return;
+      }
 
-function verMes(mes, anio) {
-    localStorage.setItem("mesSeleccionado", mes);
-    localStorage.setItem("anioSeleccionado", anio);
-    location.href = "resumen_mes.html";
-}
+      meses.forEach(m => {
+          const resultado = m.ing - m.egr;
+          const clase = resultado >= 0 ? "pos" : "neg";
+          
+          const fechaObj = new Date(m.anio, m.mes - 1);
+          let nombreMes = fechaObj.toLocaleString("es-ES", { month: "long", year: "numeric" });
+          nombreMes = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
 
-pintar();
+          tabla.innerHTML += `
+              <tr>
+                  <td><strong>${nombreMes}</strong></td>
+                  <td>$ ${m.ing.toLocaleString('es-CO')}</td>
+                  <td>$ ${m.egr.toLocaleString('es-CO')}</td>
+                  <td class="${clase}">$ ${resultado.toLocaleString('es-CO')}</td>
+                  <td>
+                      <button onclick="verMes(${m.mes}, ${m.anio})">Ver Detalle</button>
+                  </td>
+              </tr>
+          `;
+      });
+  };
+
+  // Función puente para mandar la orden al resumen mensual
+  window.verMes = (mes, anio) => {
+      localStorage.setItem("mesSeleccionado", mes);
+      localStorage.setItem("anioSeleccionado", anio);
+      location.href = "resumen_mes.html";
+  };
 </script>
 
 </body>

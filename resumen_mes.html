@@ -2,61 +2,42 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MODU · Inteligencia de Negocio</title>
 
 <style>
 body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #1a1a1a; }
 
 header {
-    background: #1e293b; 
-    color: white;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    background: #1e293b; color: white; padding: 12px 20px;
+    display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); justify-content: space-between;
 }
+
+.left-header { display: flex; align-items: center; flex: 1; }
 
 .home-icon { width: 22px; height: 22px; fill: #fff; cursor: pointer; transition: 0.2s; }
 .home-icon:hover { opacity: 0.7; }
 
 header button {
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-weight: bold;
+    background: #3498db; color: white; border: none; border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-weight: bold; transition: 0.2s;
 }
+header button:hover { opacity: 0.9; }
 
 .container { padding: 25px; max-width: 1100px; margin: auto; }
 
 .periodo {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 20px;
-    color: #334155;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 20px; font-weight: 800; margin-bottom: 20px;
+    color: #334155; display: flex; align-items: center; gap: 10px;
 }
 
-.cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    margin-bottom: 30px;
-}
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
 
 .card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-    border: 1px solid #e2e8f0;
-    transition: transform 0.2s;
+    background: white; padding: 20px; border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; transition: transform 0.2s;
 }
-.card:hover { transform: translateY(-3px); }
+.card:hover { transform: translateY(-3px); border-color: #cbd5e1; }
 
 .card span { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
 .card strong { display: block; margin-top: 8px; font-size: 22px; letter-spacing: -1px; }
@@ -69,79 +50,69 @@ header button {
 .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
 
 .graficos, .cuentas {
-    background: white;
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-    border: 1px solid #e2e8f0;
+    background: white; padding: 25px; border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e2e8f0;
 }
 
 .fila { margin-bottom: 25px; }
 
-.label {
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
+.label { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
 
-.barra-base {
-    background: #f1f5f9;
-    height: 12px;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-}
+.barra-base { background: #f1f5f9; height: 12px; border-radius: 10px; overflow: hidden; position: relative; }
 
 .barra-ing { background: #10b981; height: 100%; transition: width 0.8s ease-in-out; }
 .barra-egr { background: #ef4444; height: 100%; transition: width 0.8s ease-in-out; }
 .stack { display: flex; height: 100%; border-radius: 10px; overflow: hidden; }
 
 .eficiencia-box {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    text-align: center;
+    margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 13px;
+    font-weight: 500; text-align: center;
 }
 
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th { text-align: left; font-size: 12px; color: #64748b; padding: 10px; border-bottom: 2px solid #f1f5f9; }
-td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+th { text-align: left; font-size: 12px; color: #64748b; padding: 10px; border-bottom: 2px solid #f1f5f9; text-transform: uppercase; }
+td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; font-weight: 500; }
 .color-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
 
 .total-row {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 2px dashed #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    font-weight: 800;
-    font-size: 18px;
+    margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e2e8f0;
+    display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; color: #1e293b;
 }
 
-.sync-status { font-size: 11px; color: #3498db; margin-bottom: 10px; display: none; }
+@media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .container { padding: 15px; }
+    .periodo { font-size: 16px; margin-bottom: 15px; }
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .card { padding: 15px; }
+    .card strong { font-size: 18px; }
+    .graficos, .cuentas { padding: 15px; border-radius: 12px; }
+    header { padding: 12px 15px; }
+    header strong { font-size: 14px; }
+    header button { padding: 6px 12px; font-size: 12px; }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-    <svg class="home-icon" onclick="location.href='index.html'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
-    </svg>
-    <strong style="flex:1; margin-left: 10px;">MODU · Resumen de Gestión</strong>
-    <button style="background: #2ecc71; margin-right: 10px;" onclick="sincronizarTodo()">🔄 Sincronizar</button>
+    <div class="left-header">
+        <svg class="home-icon" onclick="location.href='resultados.html'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+        </svg>
+        <strong style="margin-left: 10px;">MODU · Resumen de Gestión</strong>
+    </div>
+    <!-- Aquí estaba el botón de sincronizar, ¡lo eliminamos y dejamos solo el historial! -->
     <button onclick="location.href='historial.html'">Ver Historial</button>
 </header>
 
 <div class="container">
-    <div id="statusSync" class="sync-status">Actualizando cifras financieras...</div>
-    
     <div class="periodo">
-        <span id="periodo"></span>
+        <span id="periodo">Cargando datos en vivo...</span>
         <span id="indicadorSalud" style="font-size: 12px; padding: 4px 10px; border-radius: 20px;"></span>
     </div>
 
@@ -166,36 +137,36 @@ td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 
     <div class="grid">
         <div class="graficos">
-            <h3 style="margin-top:0; font-size: 16px;">Análisis de Flujo</h3>
+            <h3 style="margin-top:0; font-size: 16px; color: #1e293b;">Análisis de Flujo</h3>
             
             <div class="fila">
-                <div class="label"><span>Nivel de Ingresos</span><span id="ingLabel"></span></div>
+                <div class="label"><span style="color: #64748b;">Nivel de Ingresos</span><span id="ingLabel"></span></div>
                 <div class="barra-base"><div id="barIng" class="barra-ing"></div></div>
             </div>
 
             <div class="fila">
-                <div class="label"><span>Nivel de Gastos</span><span id="egrLabel"></span></div>
+                <div class="label"><span style="color: #64748b;">Nivel de Gastos</span><span id="egrLabel"></span></div>
                 <div class="barra-base"><div id="barEgr" class="barra-egr"></div></div>
             </div>
 
             <div class="fila">
-                <div class="label"><span>Distribución de Efectivo</span><span id="dispLabel"></span></div>
+                <div class="label"><span style="color: #64748b;">Distribución de Efectivo</span><span id="dispLabel"></span></div>
                 <div class="barra-base"><div id="stackDisp" class="stack"></div></div>
             </div>
 
-            <div id="statusCaja" class="eficiencia-box"></div>
+            <div id="statusCaja" class="eficiencia-box">Conectando...</div>
         </div>
 
         <div class="cuentas">
-            <h3 style="margin-top:0; font-size: 16px;">Saldos por Cuenta</h3>
+            <h3 style="margin-top:0; font-size: 16px; color: #1e293b;">Saldos por Cuenta</h3>
             <table>
                 <thead>
-                    <tr><th>Cuenta</th><th>Saldo</th></tr>
+                    <tr><th>Cuenta</th><th style="text-align: right;">Saldo</th></tr>
                 </thead>
                 <tbody id="tablaCuentas"></tbody>
             </table>
             <div class="total-row">
-                <span>Total</span>
+                <span>Total Disponible</span>
                 <span id="totalCuentas"></span>
             </div>
         </div>
@@ -204,7 +175,7 @@ td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -218,112 +189,114 @@ td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.sincronizarTodo = async () => {
-    const status = document.getElementById("statusSync");
-    status.style.display = "block";
-    try {
-      // 1. Traer Ingresos
-      const snapIng = await getDocs(collection(db, "ingresos"));
-      const listIng = [];
-      snapIng.forEach(doc => listIng.push(doc.data()));
-      if(listIng.length > 0) localStorage.setItem("ingresos", JSON.stringify(listIng));
+  let ingresos = [];
+  let egresos = [];
+  let cuentas = [];
 
-      // 2. Traer Egresos
-      const snapEgr = await getDocs(collection(db, "egresos"));
-      const listEgr = [];
-      snapEgr.forEach(doc => listEgr.push(doc.data()));
-      if(listEgr.length > 0) localStorage.setItem("egresos", JSON.stringify(listEgr));
+  const hoy = new Date();
+  let mesActual = hoy.getMonth() + 1;
+  let anioActual = hoy.getFullYear();
 
-      alert("Cifras actualizadas.");
-      location.reload();
-    } catch (e) {
-      console.error("Error sincronizando:", e);
-    }
-    status.style.display = "none";
+  const mesPedido = localStorage.getItem("mesSeleccionado");
+  const anioPedido = localStorage.getItem("anioSeleccionado");
+
+  if (mesPedido && anioPedido) {
+      mesActual = parseInt(mesPedido);
+      anioActual = parseInt(anioPedido);
+      localStorage.removeItem("mesSeleccionado");
+      localStorage.removeItem("anioSeleccionado");
   }
-</script>
 
-<script>
-const hoy = new Date();
-let mesActual = hoy.getMonth() + 1;
-let anioActual = hoy.getFullYear();
+  const fechaRef = new Date(anioActual, mesActual - 1);
+  document.getElementById("periodo").innerText = fechaRef.toLocaleString("es-ES", { month: "long", year: "numeric" }).toUpperCase();
 
-const mesPedido = localStorage.getItem("mesSeleccionado");
-const anioPedido = localStorage.getItem("anioSeleccionado");
+  const calcularYRenderizar = () => {
+      let totalIng = 0;
+      let totalEgr = 0;
 
-if (mesPedido && anioPedido) {
-    mesActual = parseInt(mesPedido);
-    anioActual = parseInt(anioPedido);
-    localStorage.removeItem("mesSeleccionado");
-    localStorage.removeItem("anioSeleccionado");
-}
+      ingresos.filter(i => i.mes === mesActual && i.anio === anioActual && i.estado === "ACTIVO")
+              .forEach(i => totalIng += Number(i.valor));
+      
+      egresos.filter(e => e.mes === mesActual && e.anio === anioActual && e.estado === "ACTIVO")
+             .forEach(e => totalEgr += Number(e.valor));
 
-const fechaRef = new Date(anioActual, mesActual - 1);
-document.getElementById("periodo").innerText = fechaRef.toLocaleString("es-ES", { month: "long", year: "numeric" }).toUpperCase();
+      const resultado = totalIng - totalEgr;
+      let totalDisp = 0;
+      cuentas.forEach(c => totalDisp += Number(c.saldo));
 
-const ingresos = JSON.parse(localStorage.getItem("ingresos")) || [];
-const egresos  = JSON.parse(localStorage.getItem("egresos"))  || [];
-const cuentas  = JSON.parse(localStorage.getItem("cuentas"))  || [];
+      const f = (v) => `$ ${Number(v).toLocaleString('es-CO')}`;
 
-let totalIng = 0;
-let totalEgr = 0;
+      document.getElementById("ingMes").innerText = f(totalIng);
+      document.getElementById("egrMes").innerText = f(totalEgr);
+      document.getElementById("resMes").innerText = f(resultado);
+      document.getElementById("dispMes").innerText = f(totalDisp);
 
-ingresos.filter(i => i.mes === mesActual && i.anio === anioActual && i.estado === "ACTIVO").forEach(i => totalIng += Number(i.valor));
-egresos.filter(e => e.mes === mesActual && e.anio === anioActual && e.estado === "ACTIVO").forEach(e => totalEgr += Number(e.valor));
+      document.getElementById("ingLabel").innerText = f(totalIng);
+      document.getElementById("egrLabel").innerText = f(totalEgr);
+      document.getElementById("dispLabel").innerText = f(totalDisp);
 
-const resultado = totalIng - totalEgr;
-let totalDisp = 0;
-cuentas.forEach(c => totalDisp += Number(c.saldo));
+      const valorMax = Math.max(totalIng, totalEgr, totalDisp, 1);
+      document.getElementById("barIng").style.width = (totalIng / valorMax * 100) + "%";
+      document.getElementById("barEgr").style.width = (totalEgr / valorMax * 100) + "%";
 
-const f = (v) => `$ ${Number(v).toLocaleString('es-CO')}`;
+      const statusCaja = document.getElementById("statusCaja");
+      if(totalIng > 0) {
+          const porcentajeGasto = (totalEgr / totalIng) * 100;
+          const utilidadPct = 100 - porcentajeGasto;
+          
+          if(porcentajeGasto < 60) {
+              statusCaja.innerText = `¡Excelente! Estás conservando el ${utilidadPct.toFixed(1)}% de lo que vendes.`;
+              statusCaja.style.background = "#d1fae5"; statusCaja.style.color = "#065f46";
+          } else if (porcentajeGasto <= 100) {
+              statusCaja.innerText = `Cuidado: Los gastos consumen el ${porcentajeGasto.toFixed(1)}% de tus ingresos.`;
+              statusCaja.style.background = "#fef3c7"; statusCaja.style.color = "#92400e";
+          } else {
+              statusCaja.innerText = `Alerta: Estás gastando más de lo que ganas este mes.`;
+              statusCaja.style.background = "#fee2e2"; statusCaja.style.color = "#991b1b";
+          }
+      } else {
+          statusCaja.innerText = "Registra ingresos para medir la eficiencia de este mes.";
+          statusCaja.style.background = "#f8fafc"; statusCaja.style.color = "#64748b";
+      }
 
-document.getElementById("ingMes").innerText = f(totalIng);
-document.getElementById("egrMes").innerText = f(totalEgr);
-document.getElementById("resMes").innerText = f(resultado);
-document.getElementById("dispMes").innerText = f(totalDisp);
+      const colores = ["#6366f1","#10b981","#3b82f6","#f59e0b","#ef4444","#06b6d4"];
+      const stackDisp = document.getElementById("stackDisp");
+      const tablaCuentas = document.getElementById("tablaCuentas");
+      
+      stackDisp.innerHTML = "";
+      tablaCuentas.innerHTML = "";
 
-document.getElementById("ingLabel").innerText = f(totalIng);
-document.getElementById("egrLabel").innerText = f(totalEgr);
-document.getElementById("dispLabel").innerText = f(totalDisp);
+      cuentas.forEach((c, i) => {
+          const saldo = Number(c.saldo);
+          const color = colores[i % colores.length];
+          if (saldo > 0 && totalDisp > 0) {
+              const seg = document.createElement("div");
+              seg.style.width = (saldo / totalDisp * 100) + "%";
+              seg.style.background = color;
+              stackDisp.appendChild(seg);
+          }
+          tablaCuentas.innerHTML += `<tr><td><span class="color-dot" style="background:${color}"></span>${(c.nombre || '').toUpperCase()}</td><td style="text-align: right; font-weight: bold;">${f(saldo)}</td></tr>`;
+      });
 
-const valorMax = Math.max(totalIng, totalEgr, totalDisp, 1);
-document.getElementById("barIng").style.width = (totalIng / valorMax * 100) + "%";
-document.getElementById("barEgr").style.width = (totalEgr / valorMax * 100) + "%";
+      document.getElementById("totalCuentas").innerText = f(totalDisp);
+  };
 
-const statusCaja = document.getElementById("statusCaja");
-if(totalIng > 0) {
-    const porcentajeGasto = (totalEgr / totalIng) * 100;
-    const utilidadPct = 100 - porcentajeGasto;
-    
-    if(porcentajeGasto < 60) {
-        statusCaja.innerText = `¡Excelente! Estás conservando el ${utilidadPct.toFixed(1)}% de lo que vendes.`;
-        statusCaja.style.background = "#d1fae5"; statusCaja.style.color = "#065f46";
-    } else if (porcentajeGasto <= 100) {
-        statusCaja.innerText = `Cuidado: Los gastos consumen el ${porcentajeGasto.toFixed(1)}% de tus ingresos.`;
-        statusCaja.style.background = "#fef3c7"; statusCaja.style.color = "#92400e";
-    } else {
-        statusCaja.innerText = `Alerta: Estás gastando más de lo que ganas este mes.`;
-        statusCaja.style.background = "#fee2e2"; statusCaja.style.color = "#991b1b";
-    }
-}
+  // Escuchadores en tiempo real desde Firebase
+  onSnapshot(collection(db, "ingresos"), (snapshot) => {
+      ingresos = snapshot.docs.map(doc => doc.data());
+      calcularYRenderizar();
+  });
 
-const colores = ["#6366f1","#10b981","#3b82f6","#f59e0b","#ef4444","#06b6d4"];
-const stackDisp = document.getElementById("stackDisp");
-const tablaCuentas = document.getElementById("tablaCuentas");
+  onSnapshot(collection(db, "egresos"), (snapshot) => {
+      egresos = snapshot.docs.map(doc => doc.data());
+      calcularYRenderizar();
+  });
 
-cuentas.forEach((c, i) => {
-    const saldo = Number(c.saldo);
-    const color = colores[i % colores.length];
-    if (saldo > 0 && totalDisp > 0) {
-        const seg = document.createElement("div");
-        seg.style.width = (saldo / totalDisp * 100) + "%";
-        seg.style.background = color;
-        stackDisp.appendChild(seg);
-    }
-    tablaCuentas.innerHTML += `<tr><td><span class="color-dot" style="background:${color}"></span>${c.nombre}</td><td>${f(saldo)}</td></tr>`;
-});
+  onSnapshot(collection(db, "cuentas"), (snapshot) => {
+      cuentas = snapshot.docs.map(doc => doc.data());
+      calcularYRenderizar();
+  });
 
-document.getElementById("totalCuentas").innerText = f(totalDisp);
 </script>
 </body>
 </html>
