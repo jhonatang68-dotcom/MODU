@@ -2,43 +2,102 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>GRapp - Órdenes de Producción</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU - Órdenes de Producción</title>
+
 <style>
-    body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; }
-    header { background:#111; color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center; }
-    .left { display:flex; align-items:center; gap:15px; }
-    .home-icon { width:22px; height:22px; fill:#f2f2f2; cursor:pointer; }
-    button { padding:6px 12px; border:none; border-radius:5px; background:#3498db; color:#fff; cursor:pointer; }
-    .container { padding:20px; }
-    .periodo { font-size:18px; font-weight:bold; margin-bottom:10px; }
-    .total { font-size:22px; font-weight:bold; margin-bottom:15px; color: #2c3e50; }
-    table { width:100%; border-collapse:collapse; background:#fff; margin-top: 15px; }
-    th, td { padding:12px; border-bottom:1px solid #ddd; text-align: left; }
-    th { background:#eee; }
-    .filtros-historial { display: flex; align-items: center; gap: 10px; background: #ebedef; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
-    #buscador { height: 35px; padding: 4px 12px; width: 300px; border: 1px solid #ccc; border-radius: 4px; }
-    .loading-nube { font-size: 12px; color: #3498db; margin-bottom: 10px; display: none; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; color: #334155; }
+
+header {
+    background: #111; color: white; padding: 15px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.left-header { display: flex; align-items: center; gap: 15px; }
+.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; transition: 0.2s; }
+.home-icon:hover { fill: #3498db; }
+header strong { font-size: 16px; }
+
+header button {
+    background: #3498db; color: white; border: none; border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s;
+}
+header button:hover { opacity: 0.9; }
+
+.container { padding: 20px; max-width: 1200px; margin: auto; }
+
+/* Barra de Filtros */
+.filtros-bar {
+    background: white; padding: 15px; border-radius: 10px; display: flex; gap: 12px; align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; margin-bottom: 20px; flex-wrap: wrap;
+}
+#buscador {
+    flex: 1; min-width: 200px; padding: 10px 12px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 14px;
+}
+#buscador:focus { border-color: #3498db; }
+
+.filtros-bar label { font-size: 13px; font-weight: bold; color: #475569; }
+.filtros-bar select {
+    padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 14px; color: #1e293b; background: white;
+}
+.btn-hoy { background: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+
+/* Tarjeta de Total */
+.total-card {
+    background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); 
+    border: 1px solid #e2e8f0; border-left: 5px solid #2ecc71; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+}
+.total-card h3 { margin: 0; font-size: 14px; color: #64748b; text-transform: uppercase; }
+.total-card .monto { font-size: 24px; font-weight: bold; color: #1e293b; }
+
+/* Tabla */
+.tabla-responsiva { width: 100%; overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+th, td { padding: 14px; text-align: left; font-size: 14px; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+tr:hover { background: #fdfbfb; }
+
+.btn-print { background: #2ecc71; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+.btn-print:hover { background: #27ae60; }
+.tag-estado { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #e2e8f0; color: #475569; }
+
+/* Modal de Impresión */
+#modalImpresion { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.85); z-index:9999; backdrop-filter: blur(4px); }
+.modal-cuerpo { background:#f8fafc; width:90%; max-width: 800px; height:90%; margin:3vh auto; position:relative; border-radius:12px; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+.btn-close-modal { position:absolute; top:12px; right:15px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px; font-weight:bold; z-index:10000; display:flex; align-items:center; justify-content:center; }
+.btn-close-modal:hover { background: #dc2626; }
+
+@media (max-width: 768px) {
+    .filtros-bar { flex-direction: column; align-items: stretch; }
+    .filtros-bar select, .btn-hoy { width: 100%; }
+}
+
+@media (max-width: 480px) {
+    header { padding: 12px; }
+    .container { padding: 15px; }
+    .total-card { flex-direction: column; align-items: flex-start; gap: 5px; }
+    .total-card .monto { font-size: 20px; }
+}
 </style>
 </head>
+
 <body>
 
 <header>
-  <div class="left">
+  <div class="left-header">
     <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
       <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
     </svg>
-    <span>Órdenes de Producción</span>
+    <strong>Órdenes de Producción</strong>
   </div>
   <button onclick="location.href='crear_op.html'">+ Crear OP</button>
 </header>
 
 <div class="container">
-  <div class="periodo" id="periodo">Viendo: Cargando...</div>
-  <div id="statusNube" class="loading-nube">Sincronizando con la nube de Grafik...</div>
-
-  <div class="filtros-historial">
-    <input id="buscador" placeholder="Buscar orden, cliente, referencia..." oninput="pintar()">
-    <label style="margin-left: 20px;">Filtrar Mes:</label>
+  
+  <div class="filtros-bar">
+    <input id="buscador" placeholder="Buscar por orden, cliente, referencia..." onkeyup="pintar()">
+    
+    <label>Mes:</label>
     <select id="selectorMes" onchange="pintar()">
         <option value="1">Enero</option><option value="2">Febrero</option>
         <option value="3">Marzo</option><option value="4">Abril</option>
@@ -47,42 +106,52 @@
         <option value="9">Septiembre</option><option value="10">Octubre</option>
         <option value="11">Noviembre</option><option value="12">Diciembre</option>
     </select>
+    
+    <label>Año:</label>
     <select id="selectorAnio" onchange="pintar()">
         <option value="2026">2026</option><option value="2025">2025</option>
     </select>
-    <button style="background: #95a5a6;" onclick="volverAlActual()">Hoy</button>
-    <button style="background: #3498db;" onclick="cargarDeLaNube()">🔄 Sincronizar</button>
+    
+    <button class="btn-hoy" onclick="volverAlActual()">Hoy</button>
   </div>
 
-  <div class="total" id="totalVentas"></div>
+  <div class="total-card">
+      <h3 id="periodo">Viendo: Cargando...</h3>
+      <div class="monto" id="totalVentas">$ 0</div>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>No.</th>
-        <th>Fecha Pedido</th>
-        <th>Entrega</th>
-        <th>Cliente</th>
-        <th>Referencia</th>
-        <th>Valor</th>
-        <th>Estado</th>
-        <th>Acción</th>
-      </tr>
-    </thead>
-    <tbody id="tabla"></tbody>
-  </table>
+  <div class="tabla-responsiva">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Fecha Pedido</th>
+            <th>Entrega Pautada</th>
+            <th>Cliente</th>
+            <th>Referencia</th>
+            <th>Valor</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tabla">
+            <tr><td colspan="8" style="text-align: center; color: #64748b;">Conectando con la nube...</td></tr>
+        </tbody>
+      </table>
+  </div>
 </div>
 
-<div id="modalImpresion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; backdrop-filter: blur(5px);">
-    <div style="background:#fff; width:85%; height:92%; margin:2% auto; position:relative; border-radius:12px; overflow:hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
-        <button onclick="cerrarModal()" style="position:absolute; top:15px; right:15px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:35px; height:35px; cursor:pointer; font-size:18px; font-weight:bold; z-index:10000; transition: 0.3s;">✕</button>
+<!-- Modal para Imprimir OP -->
+<div id="modalImpresion">
+    <div class="modal-cuerpo">
+        <button class="btn-close-modal" onclick="cerrarModal()">✕</button>
         <iframe id="frameImpresion" src="" style="width:100%; height:100%; border:none;"></iframe>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -96,107 +165,99 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.cargarDeLaNube = async () => {
-    const status = document.getElementById("statusNube");
-    status.style.display = "block";
-    try {
-      const querySnapshot = await getDocs(collection(db, "ordenes"));
-      const ordenesNube = [];
-      querySnapshot.forEach((doc) => {
-        ordenesNube.push(doc.data());
-      });
-      
-      if(ordenesNube.length > 0) {
-        localStorage.setItem("ordenes_grafik", JSON.stringify(ordenesNube));
-        ordenes = ordenesNube; // Actualiza la variable global
-        pintar();
-        alert("¡Datos sincronizados desde la nube!");
+  let ordenesNube = [];
+
+  // Setear fecha actual en los selectores
+  const hoy = new Date();
+  document.getElementById("selectorMes").value = hoy.getMonth() + 1;
+  document.getElementById("selectorAnio").value = hoy.getFullYear();
+
+  // Escuchador en tiempo real
+  onSnapshot(collection(db, "ordenes"), (snapshot) => {
+      ordenesNube = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+      // Guardar respaldo temporal para el iframe de impresión
+      localStorage.setItem("ordenes_grafik", JSON.stringify(ordenesNube));
+      window.pintar();
+  });
+
+  window.volverAlActual = () => {
+      document.getElementById("selectorMes").value = hoy.getMonth() + 1;
+      document.getElementById("selectorAnio").value = hoy.getFullYear();
+      window.pintar();
+  };
+
+  window.pintar = () => {
+      const tabla = document.getElementById("tabla");
+      const totalDiv = document.getElementById("totalVentas");
+      tabla.innerHTML = "";
+      let total = 0;
+
+      const mesSel = parseInt(document.getElementById("selectorMes").value);
+      const anioSel = parseInt(document.getElementById("selectorAnio").value);
+      const texto = document.getElementById("buscador").value.toLowerCase();
+
+      const nombreMes = document.querySelector(`#selectorMes option[value="${mesSel}"]`).text;
+      document.getElementById("periodo").innerText = `Viendo: ${nombreMes} ${anioSel}`;
+
+      const ordenesFiltradas = ordenesNube.filter(o => o.mes === mesSel && o.anio === anioSel)
+        .filter(o => 
+            (o.numOP && o.numOP.toString().includes(texto)) || 
+            (o.cliente && o.cliente.toLowerCase().includes(texto)) ||
+            (o.ref && o.ref.toLowerCase().includes(texto))
+        )
+        .sort((a, b) => b.id - a.id); // Más recientes arriba
+
+      if(ordenesFiltradas.length === 0) {
+          tabla.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No hay órdenes de producción en este período.</td></tr>`;
       }
-    } catch (e) {
-      console.error("Error cargando nube:", e);
-    }
-    status.style.display = "none";
-  }
-</script>
 
-<script>
-const hoy = new Date();
-const mesActual = hoy.getMonth() + 1;
-const anioActual = hoy.getFullYear();
-
-document.getElementById("selectorMes").value = mesActual;
-document.getElementById("selectorAnio").value = anioActual;
-
-let ordenes = JSON.parse(localStorage.getItem("ordenes_grafik")) || [];
-
-function volverAlActual() {
-    document.getElementById("selectorMes").value = mesActual;
-    document.getElementById("selectorAnio").value = anioActual;
-    pintar();
-}
-
-function imprimirOrden(id) {
-    const ordenParaImprimir = ordenes.find(o => o.id == id);
-    if (ordenParaImprimir) {
-        localStorage.setItem("op_para_imprimir", JSON.stringify(ordenParaImprimir));
-        document.getElementById("frameImpresion").src = "imprimir_op.html";
-        document.getElementById("modalImpresion").style.display = "block";
-    } else {
-        alert("Error: No se encontró la orden.");
-    }
-}
-
-function cerrarModal() {
-    document.getElementById("modalImpresion").style.display = "none";
-    document.getElementById("frameImpresion").src = "";
-}
-
-window.addEventListener('keydown', (e) => {
-    if (e.key === "Escape") cerrarModal();
-});
-
-function pintar() {
-    const tabla = document.getElementById("tabla");
-    const totalDiv = document.getElementById("totalVentas");
-    tabla.innerHTML = "";
-    let total = 0;
-
-    const mesSel = parseInt(document.getElementById("selectorMes").value);
-    const anioSel = parseInt(document.getElementById("selectorAnio").value);
-    const texto = document.getElementById("buscador").value.toLowerCase();
-
-    const nombreMes = document.querySelector(`#selectorMes option[value="${mesSel}"]`).text;
-    document.getElementById("periodo").innerText = `Viendo: ${nombreMes} ${anioSel}`;
-
-    [...ordenes]
-      .filter(o => o.mes === mesSel && o.anio === anioSel)
-      .filter(o => 
-          (o.numOP && o.numOP.toString().includes(texto)) || 
-          (o.cliente && o.cliente.toLowerCase().includes(texto)) ||
-          (o.ref && o.ref.toLowerCase().includes(texto))
-      )
-      .sort((a, b) => b.id - a.id) // Ordenar por ID de más nuevo a más viejo
-      .forEach(o => {
-          total += Number(o.total);
+      ordenesFiltradas.forEach(o => {
+          total += Number(o.total || 0);
+          
+          // Resaltar la fecha de entrega
+          const entregaFmt = o.fechaEntrega ? o.fechaEntrega.replace('T', ' ') : '-';
+          
           tabla.innerHTML += `
             <tr>
-              <td><b>${o.numOP}</b></td>
-              <td>${o.fechaPedido}</td>
-              <td style="color:red"><b>${o.fechaEntrega ? o.fechaEntrega.replace('T',' ') : '-'}</b></td>
-              <td>${o.cliente}</td>
-              <td style="font-size:11px">${o.ref || '-'}</td>
-              <td>$ ${Number(o.total).toLocaleString()}</td>
-              <td>${o.estado || 'ACTIVO'}</td>
+              <td><strong style="color: #3498db;">${o.numOP || '-'}</strong></td>
+              <td>${o.fechaPedido || '-'}</td>
+              <td style="color: #ef4444; font-weight: bold;">${entregaFmt}</td>
+              <td><strong>${(o.cliente || '').toUpperCase()}</strong></td>
+              <td style="font-size: 12px; color: #64748b;">${(o.ref || '-').toUpperCase()}</td>
+              <td><strong>$ ${Number(o.total || 0).toLocaleString('es-CO')}</strong></td>
+              <td><span class="tag-estado">${o.estado || 'ACTIVO'}</span></td>
               <td>
-                <button onclick="imprimirOrden(${o.id})" style="background:#2ecc71;">🖨️ Ver</button>
+                <button class="btn-print" onclick="imprimirOrden('${o.id}')">Ver / Imprimir</button>
               </td>
             </tr>`;
       });
 
-    totalDiv.innerText = `TOTAL VENTAS DEL PERÍODO: $ ${total.toLocaleString()}`;
-}
+      totalDiv.innerText = `$ ${total.toLocaleString('es-CO')}`;
+  };
 
-pintar();
+  // Funciones del Modal de Impresión
+  window.imprimirOrden = (id) => {
+      // Usamos el ID interno para mantener compatibilidad con tu módulo de impresión
+      const ordenParaImprimir = ordenesNube.find(o => String(o.id) === String(id));
+      if (ordenParaImprimir) {
+          localStorage.setItem("op_para_imprimir", JSON.stringify(ordenParaImprimir));
+          document.getElementById("frameImpresion").src = "imprimir_op.html";
+          document.getElementById("modalImpresion").style.display = "block";
+      } else {
+          alert("Error: No se encontró la orden en la base de datos.");
+      }
+  };
+
+  window.cerrarModal = () => {
+      document.getElementById("modalImpresion").style.display = "none";
+      document.getElementById("frameImpresion").src = "";
+  };
+
+  window.addEventListener('keydown', (e) => {
+      if (e.key === "Escape") window.cerrarModal();
+  });
+
 </script>
+
 </body>
 </html>
