@@ -2,8 +2,76 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MODU · Panel Principal</title>
-    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; color: #334155; }
+
+        /* Barra superior de estado */
+        .status-bar { background: #0f172a; color: #94a3b8; padding: 8px 15px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; }
+        
+        /* Encabezado Principal */
+        .main-header { background: #1e293b; color: #fff; text-align: center; padding: 25px; font-size: 28px; font-weight: 800; letter-spacing: 1px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+        /* Barra de respaldos */
+        .backup-bar { display: flex; justify-content: center; gap: 10px; padding: 15px; background: #fff; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+        .btn-backup { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
+        .btn-backup:hover { background: #e2e8f0; color: #0f172a; }
+
+        /* Contenedor de Módulos Responsivo */
+        .container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+            gap: 15px; 
+            padding: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+
+        /* Diseño de cada botón/módulo */
+        .modulo { 
+            background: #fff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            padding: 25px 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center; 
+            gap: 12px; 
+            font-weight: 700; 
+            font-size: 13px; 
+            color: #334155; 
+            cursor: pointer; 
+            transition: all 0.2s ease-in-out; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); 
+        }
+        .modulo:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-color: #3498db; color: #3498db; }
+        .modulo svg { stroke: #475569; transition: stroke 0.2s; }
+        .modulo:hover svg { stroke: #3498db; }
+
+        /* Módulo de configuración específico */
+        .modulo-config { background: #fafafa; }
+        .modulo-config:hover { border-color: #cbd5e1; color: #475569; }
+        .modulo-config:hover svg { stroke: #475569; }
+
+        /* AJUSTES ESPECÍFICOS PARA CELULARES */
+        @media (max-width: 480px) {
+            .container { 
+                grid-template-columns: repeat(2, 1fr); /* En celular muestra 2 columnas perfectas una al lado de la otra */
+                gap: 10px; 
+                padding: 12px; 
+            }
+            .modulo { padding: 20px 10px; font-size: 11px; border-radius: 10px; }
+            .modulo svg { width: 28px; height: 28px; }
+            .main-header { padding: 18px; font-size: 22px; }
+            .backup-bar { flex-direction: column; align-items: stretch; padding: 10px; gap: 8px; }
+            .btn-backup { text-align: center; padding: 10px; }
+        }
+    </style>
 </head>
 <body>
 
@@ -21,39 +89,39 @@
     </div>
 
     <div class="container">
-    <div class="modulo" onclick="location.href='clientes.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        CLIENTES
+        <div class="modulo" onclick="location.href='clientes.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            CLIENTES
+        </div>
+        <div class="modulo" onclick="location.href='proveedores.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+            PROVEEDORES
+        </div>
+        <div class="modulo" onclick="location.href='ingresos.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            INGRESOS
+        </div>
+        <div class="modulo" onclick="location.href='egresos.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 19H9.5a3.5 3.5 0 0 1 0-7h5a3.5 3.5 0 0 0 0-7H6"></path></svg>
+            EGRESOS
+        </div>
+        <div class="modulo" onclick="location.href='ordenes.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            ÓRDENES DE PRODUCTION
+        </div>
+        <div class="modulo" onclick="location.href='resultados.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            RESULTADOS
+        </div>
+        <div class="modulo" onclick="location.href='calculadora_corte.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+            CALCULADORA DE CORTE
+        </div>
+        <div class="modulo modulo-config" onclick="location.href='configuracion.html'">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            CONFIGURACIÓN
+        </div>
     </div>
-    <div class="modulo" onclick="location.href='proveedores.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-        PROVEEDORES
-    </div>
-    <div class="modulo" onclick="location.href='ingresos.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        INGRESOS
-    </div>
-    <div class="modulo" onclick="location.href='egresos.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 19H9.5a3.5 3.5 0 0 1 0-7h5a3.5 3.5 0 0 0 0-7H6"></path></svg>
-        EGRESOS
-    </div>
-    <div class="modulo" onclick="location.href='ordenes.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-        ÓRDENES DE PRODUCCIÓN
-    </div>
-    <div class="modulo" onclick="location.href='resultados.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        RESULTADOS
-    </div>
-    <div class="modulo" onclick="location.href='calculadora_corte.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#334155" stroke-width="1.5"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
-        CALCULADORA DE CORTE
-    </div>
-    <div class="modulo modulo-config" onclick="location.href='configuracion.html'">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#cbd5e1" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        CONFIGURACIÓN
-    </div>
-</div>
 
     <script>
         // Fecha dinámica
