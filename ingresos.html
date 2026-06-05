@@ -2,50 +2,65 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>GRapp - Ingresos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU - Ingresos</title>
 
 <style>
-body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f6f8; margin:0; color: #334155; }
 header {
   background:#111; color:#fff; padding:15px;
   display:flex; justify-content:space-between; align-items:center;
 }
 .left { display:flex; align-items:center; gap:15px; }
-.home-icon { width:22px; height:22px; fill:#f2f2f2; cursor:pointer; }
-button {
-  padding:6px 12px; border:none; border-radius:5px;
-  background:#3498db; color:#fff; cursor:pointer;
-}
-.anular { background:#e74c3c; }
-.container { padding:20px; }
-.periodo { font-size:18px; font-weight:bold; margin-bottom:10px; }
-.total { font-size:22px; font-weight:bold; margin-bottom:15px; color: #2c3e50; }
-table { width:100%; border-collapse:collapse; background:#fff; margin-top: 15px; }
-th, td { padding:12px; border-bottom:1px solid #ddd; text-align: left; }
-th { background:#eee; }
-.anulado { color:red; font-weight:bold; }
-.actions { display:flex; gap:8px; }
+.home-icon { width:22px; height:22px; fill:#f2f2f2; cursor:pointer; transition: 0.2s; }
+.home-icon:hover { fill: #3498db; }
+strong { font-size: 16px; }
 
-#buscador {
-    height: 35px;
-    padding: 4px 12px;
-    font-size: 14px;
-    width: 300px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.actions { display:flex; gap:8px; }
+button {
+  padding:10px 14px; border:none; border-radius:6px;
+  background:#3498db; color:#fff; cursor:pointer; font-weight: bold; font-size: 13px; transition: 0.2s;
 }
+button:hover { opacity: 0.9; }
+.anular { background:#e74c3c; padding: 6px 10px; font-size: 12px; }
+.container { padding:20px; max-width: 1200px; margin: 0 auto; }
+.periodo { font-size:18px; font-weight:bold; margin-bottom:10px; color: #1e293b; }
+.total { font-size:20px; font-weight:bold; margin-bottom:15px; color: #2c3e50; background: #fff; padding: 15px; border-radius: 8px; border-left: 5px solid #2ecc71; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
 
 .filtros-historial {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #ebedef;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
+    display: flex; align-items: center; gap: 12px; background: #fff;
+    padding: 15px; border-radius: 8px; margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; flex-wrap: wrap;
+}
+#buscador {
+    height: 40px; padding: 4px 12px; font-size: 14px; width: 300px;
+    border: 1px solid #cbd5e1; border-radius: 6px; outline: none;
+}
+#buscador:focus { border-color: #3498db; }
+select {
+    height: 40px; padding: 0 10px; border: 1px solid #cbd5e1;
+    border-radius: 6px; background: #fff; outline: none; font-size: 14px;
 }
 
-.status-nube { font-size: 12px; color: #3498db; display: none; margin-bottom: 10px; }
+.tabla-responsiva { width: 100%; overflow-x: auto; background:#fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: 15px; }
+table { width:100%; border-collapse:collapse; min-width: 750px; }
+th, td { padding:14px; border-bottom:1px solid #e2e8f0; text-align: left; font-size: 14px; }
+th { background:#f8f9fa; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+tr:hover { background: #f1f7fd; }
+.anulado { color:#e74c3c; font-weight:bold; background: #fdedec; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+.activo-tag { color:#27ae60; font-weight:bold; background: #eafaf1; padding: 3px 6px; border-radius: 4px; font-size: 12px; }
+
+@media (max-width: 480px) {
+    header { padding: 12px; }
+    strong { font-size: 14px; }
+    .actions button { padding: 8px 10px; font-size: 12px; }
+    .container { padding: 12px; }
+    .periodo { font-size: 16px; }
+    .total { font-size: 15px; padding: 12px; }
+    .filtros-historial { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+    #buscador, select, .filtros-historial button { width: 100% !important; margin: 0 !important; }
+    .filtros-historial label { margin: 5px 0 0 0 !important; font-size: 13px; font-weight: bold; }
+}
 </style>
 </head>
 
@@ -53,26 +68,24 @@ th { background:#eee; }
 
 <header>
   <div class="left">
-    <svg class="home-icon" onclick="location.href='index.html'"
-      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
       <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
     </svg>
-    <span>Ingresos</span>
+    <strong>Ingresos</strong>
   </div>
   <div class="actions">
-        <button style="background: #2ecc71;" onclick="sincronizarIngresos()">🔄 Sincronizar</button>
+        <!-- ¡Adiós botón de sincronizar! -->
         <button onclick="location.href='nuevo_ingreso.html'">+ Crear Ingreso</button>
   </div>
 </header>
 
 <div class="container">
   <div class="periodo" id="periodo">Período: Cargando...</div>
-  <div id="statusNube" class="status-nube">Buscando nuevos ingresos en la nube...</div>
 
   <div class="filtros-historial">
-    <input id="buscador" placeholder="Buscar recibo, cliente, descripción...">
+    <input id="buscador" placeholder="Buscar recibo, cliente, descripción..." onkeyup="pintar()">
     
-    <label style="margin-left: 20px;">Filtrar Mes:</label>
+    <label>Filtrar Mes:</label>
     <select id="selectorMes" onchange="pintar()">
         <option value="1">Enero</option>
         <option value="2">Febrero</option>
@@ -92,31 +105,33 @@ th { background:#eee; }
         <option value="2026">2026</option>
         <option value="2025">2025</option>
     </select>
-    <button style="background: #95a5a6;" onclick="volverAlActual()">Hoy</button>
+    <button style="background: #64748b;" onclick="volverAlActual()">Hoy</button>
   </div>
 
   <div class="total" id="totalIngresos"></div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>No.</th>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Descripción</th>
-        <th>Cuenta</th>
-        <th>Valor</th>
-        <th>Estado</th>
-        <th>Acción</th>
-      </tr>
-    </thead>
-    <tbody id="tabla"></tbody>
-  </table>
+  <div class="tabla-responsiva">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Descripción</th>
+            <th>Cuenta</th>
+            <th>Valor</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tabla"></tbody>
+      </table>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -130,122 +145,98 @@ th { background:#eee; }
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.sincronizarIngresos = async () => {
-    const status = document.getElementById("statusNube");
-    status.style.display = "block";
-    try {
-      const querySnapshot = await getDocs(collection(db, "ingresos"));
-      const listNube = [];
-      querySnapshot.forEach((doc) => {
-        listNube.push(doc.data());
-      });
+  let ingresosMemoria = [];
+  let cuentasLocal = JSON.parse(localStorage.getItem("cuentas")) || [];
 
-      if(listNube.length > 0) {
-        localStorage.setItem("ingresos", JSON.stringify(listNube));
-        alert("¡Ingresos actualizados desde la nube!");
-        location.reload(); 
-      }
-    } catch (e) {
-      console.error("Error:", e);
-    }
-    status.style.display = "none";
+  // Conexión en tiempo real a Firebase
+  onSnapshot(collection(db, "ingresos"), (snapshot) => {
+    ingresosMemoria = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+    window.pintar();
+  });
+
+  const hoy = new Date();
+  document.getElementById("selectorMes").value = hoy.getMonth() + 1;
+  document.getElementById("selectorAnio").value = hoy.getFullYear();
+
+  window.volverAlActual = () => {
+      document.getElementById("selectorMes").value = hoy.getMonth() + 1;
+      document.getElementById("selectorAnio").value = hoy.getFullYear();
+      window.pintar();
+  };
+
+  function formatearFecha(fecha) {
+      if (!fecha) return "-";
+      const partes = fecha.split("-");
+      if(partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      return fecha;
   }
-</script>
 
-<script>
-const hoy = new Date();
-const mesActual = hoy.getMonth() + 1;
-const anioActual = hoy.getFullYear();
+  window.pintar = () => {
+      const tabla = document.getElementById("tabla");
+      const totalDiv = document.getElementById("totalIngresos");
+      const buscador = document.getElementById("buscador").value.toLowerCase();
+      const mesSeleccionado = parseInt(document.getElementById("selectorMes").value);
+      const anioSeleccionado = parseInt(document.getElementById("selectorAnio").value);
 
-document.getElementById("selectorMes").value = mesActual;
-document.getElementById("selectorAnio").value = anioActual;
+      tabla.innerHTML = "";
+      let total = 0;
 
-function formatearFecha(fecha) {
-    if (!fecha) return "-";
-    const partes = fecha.split("-");
-    if(partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
-    return fecha;
-}
+      const nombreMesElegido = document.querySelector(`#selectorMes option[value="${mesSeleccionado}"]`).text;
+      document.getElementById("periodo").innerText = `Viendo: ${nombreMesElegido} ${anioSeleccionado}`;
 
-function volverAlActual() {
-    document.getElementById("selectorMes").value = mesActual;
-    document.getElementById("selectorAnio").value = anioActual;
-    pintar();
-}
+      const filtrados = ingresosMemoria.filter(i => {
+          const coincideFecha = parseInt(i.mes) === mesSeleccionado && parseInt(i.anio) === anioSeleccionado;
+          const coincideTexto = (i.recibo && i.recibo.toString().includes(buscador)) ||
+                                (i.cliente && i.cliente.toLowerCase().includes(buscador)) ||
+                                (i.descripcion && i.descripcion.toLowerCase().includes(buscador)) ||
+                                (i.cuenta && i.cuenta.toLowerCase().includes(buscador));
+          return coincideFecha && coincideTexto;
+      }).sort((a, b) => b.id - a.id); // Ordenados por número de recibo de mayor a menor
 
-let ingresos = JSON.parse(localStorage.getItem("ingresos")) || [];
-let cuentas  = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-const tabla = document.getElementById("tabla");
-const buscador = document.getElementById("buscador");
-buscador.addEventListener("input", pintar);
-const totalDiv = document.getElementById("totalIngresos");
-
-function pintar() {
-    tabla.innerHTML = "";
-    let total = 0;
-
-    const mesSeleccionado = parseInt(document.getElementById("selectorMes").value);
-    const anioSeleccionado = parseInt(document.getElementById("selectorAnio").value);
-    const texto = buscador.value.toLowerCase();
-
-    const nombreMesElegido = document.querySelector(`#selectorMes option[value="${mesSeleccionado}"]`).text;
-    document.getElementById("periodo").innerText = `Viendo: ${nombreMesElegido} ${anioSeleccionado}`;
-
-    [...ingresos]
-      .filter(i => i.mes === mesSeleccionado && i.anio === anioSeleccionado) 
-      .filter(i => 
-          (i.recibo && i.recibo.toString().includes(texto)) ||
-          (i.cliente && i.cliente.toLowerCase().includes(texto)) ||
-          (i.descripcion && i.descripcion.toLowerCase().includes(texto)) ||
-          (i.cuenta && i.cuenta.toLowerCase().includes(texto)) ||
-          (i.valor && i.valor.toString().includes(texto))
-      )
-      .sort((a, b) => b.id - a.id)
-      .forEach(i => {
-          if (i.estado === "ACTIVO") total += Number(i.valor);
+      filtrados.forEach(i => {
+          const esActivo = i.estado === "ACTIVO";
+          if (esActivo) total += Number(i.valor);
 
           tabla.innerHTML += `
             <tr>
-              <td>${i.recibo}</td>
+              <td><strong>${i.recibo || '-'}</strong></td>
               <td>${formatearFecha(i.fecha)}</td>
-              <td>${i.cliente}</td>
-              <td>${i.descripcion}</td>
-              <td>${i.cuenta}</td>
-              <td>$ ${Number(i.valor).toLocaleString()}</td>
-              <td class="${i.estado==='ANULADO'?'anulado':''}">${i.estado}</td>
+              <td><strong>${i.cliente || '-'}</strong></td>
+              <td>${i.descripcion || '-'}</td>
+              <td><small>${(i.cuenta || '-').toUpperCase()}</small></td>
+              <td><strong>$ ${Number(i.valor).toLocaleString()}</strong></td>
+              <td><span class="${esActivo ? 'activo-tag' : 'anulado'}">${i.estado}</span></td>
               <td>
-                ${i.estado==="ACTIVO" 
-                  ? `<button class="anular" onclick="anular(${i.id})">Anular</button>` 
-                  : ``}
+                ${esActivo ? `<button class="anular" onclick="anularFirebase('${i.firebaseId}', '${i.cuenta}', ${i.valor})">Anular</button>` : ``}
               </td>
             </tr>`;
       });
 
-    totalDiv.innerText = `TOTAL INGRESOS DEL PERÍODO: $ ${total.toLocaleString()}`;
-}
+      totalDiv.innerText = `TOTAL INGRESOS DEL PERÍODO: $ ${total.toLocaleString()}`;
+  };
 
-function anular(id){
-  if(!confirm("¿Seguro que deseas ANULAR este recibo?")) return;
-  const ingreso = ingresos.find(i => i.id === id);
-  if(!ingreso) return;
+  // Anulación conectada directo a Firebase
+  window.anularFirebase = async (firebaseId, cuentaNombre, valor) => {
+      if(!confirm("¿Seguro que deseas ANULAR este recibo permanentemente en la nube?")) return;
+      
+      try {
+          // 1. Actualiza el estado en Firebase
+          const docRef = doc(db, "ingresos", firebaseId);
+          await updateDoc(docRef, { estado: "ANULADO" });
+          
+          // 2. Resta el saldo en la cuenta local (mientras migramos las cuentas a la nube)
+          cuentasLocal = cuentasLocal.map(c => 
+              c.nombre === cuentaNombre ? { ...c, saldo: Number(c.saldo) - Number(valor) } : c
+          );
+          localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
+          
+          // No hace falta llamar a pintar() porque onSnapshot detecta el cambio automáticamente
+      } catch (error) {
+          console.error("Error al anular:", error);
+          alert("Hubo un error al anular el recibo en la nube.");
+      }
+  };
 
-  cuentas = cuentas.map(c =>
-    c.nombre === ingreso.cuenta
-      ? { ...c, saldo: Number(c.saldo) - Number(ingreso.valor) }
-      : c
-  );
-
-  ingresos = ingresos.map(i =>
-    i.id === id ? { ...i, estado:"ANULADO" } : i
-  );
-
-  localStorage.setItem("ingresos", JSON.stringify(ingresos));
-  localStorage.setItem("cuentas", JSON.stringify(cuentas));
-  pintar();
-}
-
-pintar();
 </script>
 
 </body>
