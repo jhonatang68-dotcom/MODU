@@ -2,63 +2,64 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>GRapp - Proveedores</title>
+<title>MODU - Proveedores</title>
 
 <style>
-body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
-header { background: #111; color: white; padding: 15px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
-header button { background: #3498db; border: none; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; }
+header { background: #111; color: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.header-left { display: flex; align-items: center; gap: 15px; }
+.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; transition: 0.2s; }
+.home-icon:hover { fill: #3498db; }
+.btn-crear { background: #3498db; border: none; color: white; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; }
 .container { padding: 20px; }
-input[type="text"] { padding: 10px; width: 300px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }
-table { width: 100%; border-collapse: collapse; background: white; }
-th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-th { background: #eee; }
-.riesgo-verde { color: green; font-weight: bold; }
-.riesgo-amarillo { color: orange; font-weight: bold; }
-.riesgo-rojo { color: red; font-weight: bold; }
-.home-icon { width: 22px; height: 22px; fill: #f2f2f2; cursor: pointer; transition: fill 0.2s ease; }
-.home-icon:hover { fill: #cccccc; }
-.sync-btn { background: #2ecc71; margin-left: 10px; }
-.status-nube { font-size: 12px; color: #3498db; display: none; margin-bottom: 10px; }
+.controles { display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+input[type="text"] { padding: 10px; flex-grow: 1; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: left; }
+th { background: #f8f9fa; color: #666; font-size: 12px; text-transform: uppercase; }
+tr:hover { background: #f1f7fd; transition: 0.2s; }
+.riesgo-verde { color: #27ae60; font-weight: bold; background: #eafaf1; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+.riesgo-amarillo { color: #f39c12; font-weight: bold; background: #fef5e7; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+.riesgo-rojo { color: #e74c3c; font-weight: bold; background: #fdedec; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
 </style>
 </head>
 
 <body>
 
 <header>
-    <div style="display:flex; align-items:center; gap:15px;">
+    <div class="header-left">
         <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
             <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
         </svg>
-        <span>Proveedores</span>
+        <strong>Directorio de Proveedores Grafik</strong>
     </div>
-    <div style="display: flex; gap: 10px;">
-        <button class="sync-btn" onclick="sincronizarProveedores()">🔄 Sincronizar</button>
-        <button onclick="location.href='nuevo_cliente.html?modo=proveedor'">+ Crear</button>
+    <div>
+        <button class="btn-crear" onclick="location.href='nuevo_cliente.html?modo=proveedor'">+ Nuevo Proveedor</button>
     </div>
 </header>
 
 <div class="container">
-    <div id="statusNube" class="status-nube">Buscando proveedores en la nube de Grafik...</div>
-    <input type="text" id="buscar" placeholder="Buscar proveedor..." onkeyup="filtrar()">
+    <div class="controles">
+        <input type="text" id="buscar" placeholder="🔍 Buscar proveedor por nombre, celular o producto..." onkeyup="filtrar()">
+    </div>
 
     <table>
         <thead>
             <tr>
-                <th>Nombre</th>
-                <th>Tipo</th>
+                <th>Nombre / Razón Social</th>
+                <th>Producto / Servicio</th>
                 <th>Celular</th>
                 <th>Ciudad</th>
-                <th>Riesgo</th>
+                <th>Estado Riesgo</th>
             </tr>
         </thead>
-        <tbody id="tablaClientes"></tbody>
+        <tbody id="tablaProveedores"></tbody>
     </table>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -72,81 +73,56 @@ th { background: #eee; }
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.sincronizarProveedores = async () => {
-    const status = document.getElementById("statusNube");
-    status.style.display = "block";
-    try {
-      const querySnapshot = await getDocs(collection(db, "proveedores"));
-      const listaNube = [];
-      querySnapshot.forEach((doc) => {
-        listaNube.push(doc.data());
-      });
+  let proveedoresMemoria = [];
 
-      if(listaNube.length > 0) {
-        // Obtenemos los clientes actuales para no borrar los que no son proveedores
-        let baseCompleta = JSON.parse(localStorage.getItem("clientes")) || [];
-        // Quitamos los proveedores viejos
-        baseCompleta = baseCompleta.filter(c => c.tipo !== "Proveedor");
-        // Metemos los de la nube
-        baseCompleta = [...baseCompleta, ...listaNube];
-        
-        localStorage.setItem("clientes", JSON.stringify(baseCompleta));
-        alert("¡Proveedores actualizados desde la nube!");
-        location.reload(); // Recarga para mostrar los cambios
-      }
-    } catch (e) {
-      console.error("Error:", e);
-    }
-    status.style.display = "none";
-  }
-</script>
+  // Escuchar Firebase en tiempo real, conectando a la misma base central
+  onSnapshot(collection(db, "clientes"), (snapshot) => {
+    const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Filtramos localmente para mostrar solo los proveedores
+    proveedoresMemoria = todos.filter(c => 
+        c.tipo && c.tipo.toLowerCase() === "proveedor"
+    );
+    
+    pintarProveedores(proveedoresMemoria);
+  });
 
-<script>
-// Carga inicial desde LocalStorage
-let base = JSON.parse(localStorage.getItem("clientes")) || [];
-
-// SOLO PROVEEDORES
-function obtenerProveedores() {
-    return base.filter(c => c.tipo && c.tipo.toLowerCase() === "proveedor");
-}
-
-function pintarProveedores(lista) {
-    const tabla = document.getElementById("tablaClientes");
+  function pintarProveedores(lista) {
+    const tabla = document.getElementById("tablaProveedores");
     tabla.innerHTML = "";
-
+    
     lista.forEach(c => {
-        let claseRiesgo = "riesgo-verde";
-        if (c.riesgo === "medio") claseRiesgo = "riesgo-amarillo";
-        if (c.riesgo === "alto") claseRiesgo = "riesgo-rojo";
-
+        let riesgo = (c.riesgo || "bajo").toLowerCase();
+        let claseRiesgo = riesgo === "alto" ? "riesgo-rojo" : (riesgo === "medio" ? "riesgo-amarillo" : "riesgo-verde");
+        const ciudad = c.ciudad || c.Ciudad || "-";
+        const producto = c.producto || "-";
+        
         tabla.innerHTML += `
-            <tr style="cursor:pointer" onclick="editarProveedor(${c.id})">
-                <td>${c.nombre}</td>
-                <td>${c.tipo}</td>
-                <td>${c.celular}</td>
-                <td>${c.ciudad || ""}</td>
-                <td class="${claseRiesgo}">${(c.riesgo || "").toUpperCase()}</td>
+            <tr style="cursor:pointer" onclick="window.location.href='nuevo_cliente.html?id=${c.id}'">
+                <td><strong>${c.nombre || 'Sin Nombre'}</strong></td>
+                <td><small>${producto.toUpperCase()}</small></td>
+                <td>${c.celular || '-'}</td>
+                <td>${ciudad}</td>
+                <td><span class="${claseRiesgo}">${riesgo.toUpperCase()}</span></td>
             </tr>
         `;
     });
-}
+  }
 
-function filtrar() {
+  // Buscador global para texto y productos
+  window.filtrar = () => {
     const texto = document.getElementById("buscar").value.toLowerCase();
-    const proveedores = obtenerProveedores();
-    const filtrados = proveedores.filter(c =>
-        c.nombre.toLowerCase().includes(texto) ||
-        c.celular.includes(texto)
-    );
+
+    const filtrados = proveedoresMemoria.filter(c => {
+        const nombre = c.nombre ? c.nombre.toLowerCase() : "";
+        const celular = c.celular ? c.celular : "";
+        const producto = c.producto ? c.producto.toLowerCase() : "";
+        
+        return nombre.includes(texto) || celular.includes(texto) || producto.includes(texto);
+    });
+
     pintarProveedores(filtrados);
-}
-
-// Pintar al cargar
-pintarProveedores(obtenerProveedores());
-
-function editarProveedor(id) {
-    window.location.href = "nuevo_cliente.html?id=" + id;
-}
+  }
 </script>
 
 </body>
