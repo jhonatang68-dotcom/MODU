@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU · Tarifario</title>
+<style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding-bottom: 50px; color: #334155; }
+    
+    header { background: #111; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .left-header { display: flex; align-items: center; gap: 10px; }
+    .home-icon { width: 22px; height: 22px; fill: white; cursor: pointer; transition: 0.2s; }
+    .home-icon:hover { fill: #3498db; }
+    header strong { font-size: 16px; }
+
+    .container { padding: 20px; max-width: 1000px; margin: auto; }
+    
+    /* Tabs adaptables */
+    .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: -1px; }
+    .tab { 
+        padding: 12px 20px; background: #e2e8f0; cursor: pointer; border-radius: 8px 8px 0 0; 
+        border: none; font-weight: bold; color: #475569; flex: 1; text-align: center; min-width: 120px;
+    }
+    .tab.active { background: white; color: #3498db; border-top: 3px solid #3498db; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; }
+    
+    .panel { background: white; padding: 25px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: none; border: 1px solid #e2e8f0; }
+    .panel.active { display: block; }
+    
+    .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px; }
+    .panel-header h3 { margin: 0; color: #1e293b; font-size: 18px; }
+
+    .btn-add { background: #2ecc71; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; }
+    .btn-add:hover { background: #27ae60; }
+
+    /* Tabla */
+    .tabla-responsiva { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th { text-align: left; background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 12px; color: #64748b; text-transform: uppercase; }
+    td { padding: 14px 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    tr:hover { background: #f8fafc; }
+    
+    .precio-cli { color: #1e293b; font-weight: bold; }
+    .precio-ter { color: #3498db; font-weight: bold; }
+    .min-label { font-size: 11px; color: #94a3b8; display: block; margin-top: 2px; }
+
+    .btn-action { border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; color: white; margin-right: 5px; }
+    .btn-edit { background: #f39c12; }
+    .btn-delete { background: #e74c3c; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+    .modal-content { background: white; margin: 5vh auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.2s ease-out; }
+    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    .modal-content h3 { margin-top: 0; color: #1e293b; font-size: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+    label { display: block; font-size: 12px; font-weight: bold; margin-top: 15px; text-transform: uppercase; color: #475569; }
+    input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; }
+    input:focus, select:focus { border-color: #3498db; background: #f0f7ff; }
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
+    .btn-save { background: #3498db; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: bold; font-size: 14px; }
+    .btn-cancel { background: #f1f5f9; color: #475569; border: none; padding: 12px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: bold; font-size: 14px; }
+
+    @media (max-width: 480px) {
+        .tabs { flex-direction: column; gap: 2px; }
+        .tab { border-radius: 4px; }
+        .tab.active { border: 1px solid #3498db; }
+        .panel { padding: 15px; border-radius: 8px; margin-top: 10px; }
+        .panel-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .btn-add { width: 100%; }
+        header { padding: 12px; }
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="left-header">
+        <svg class="home-icon" onclick="location.href='configuracion.html'" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        <strong>Configuración | Tarifas</strong>
+    </div>
+    <span style="font-weight: 900; color: #3498db; letter-spacing: -1px; font-size: 18px;">MODU</span>
+</header>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab active" onclick="verTab(event, 'GF')">Gran Formato</button>
+        <button class="tab" onclick="verTab(event, 'LITO')">Litografía</button>
+        <button class="tab" onclick="verTab(event, 'LASER')">Corte Láser</button>
+        <button class="tab" onclick="verTab(event, 'SUBLI')">Sublimación</button>
+    </div>
+
+    <!-- Panel Gran Formato -->
+    <div id="P_GF" class="panel active">
+        <div class="panel-header">
+            <h3>Gran Formato y Plotter</h3>
+            <button class="btn-add" onclick="abrirModal('GF')">+ Crear Material</button>
+        </div>
+        <div class="tabla-responsiva">
+            <table>
+                <thead><tr><th>Material / Servicio</th><th>Unidad</th><th>Precio Cliente</th><th>Precio Tercero</th><th>Acción</th></tr></thead>
+                <tbody id="T_GF"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Panel Litografía -->
+    <div id="P_LITO" class="panel">
+        <div class="panel-header">
+            <h3>Litografía Digital</h3>
+            <button class="btn-add" onclick="abrirModal('LITO')">+ Crear Material</button>
+        </div>
+        <div class="tabla-responsiva">
+            <table>
+                <thead><tr><th>Material / Servicio</th><th>Unidad</th><th>Precio Cliente</th><th>Precio Tercero</th><th>Acción</th></tr></thead>
+                <tbody id="T_LITO"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Panel Láser -->
+    <div id="P_LASER" class="panel">
+        <div class="panel-header">
+            <h3>Corte Láser / Router</h3>
+            <button class="btn-add" onclick="abrirModal('LASER')">+ Crear Material</button>
+        </div>
+        <div class="tabla-responsiva">
+            <table>
+                <thead><tr><th>Material / Servicio</th><th>Unidad</th><th>Precio Cliente</th><th>Precio Tercero</th><th>Acción</th></tr></thead>
+                <tbody id="T_LASER"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Panel Sublimación -->
+    <div id="P_SUBLI" class="panel">
+        <div class="panel-header">
+            <h3>Sublimación</h3>
+            <button class="btn-add" onclick="abrirModal('SUBLI')">+ Crear Material</button>
+        </div>
+        <div class="tabla-responsiva">
+            <table>
+                <thead><tr><th>Material / Servicio</th><th>Unidad</th><th>Precio Cliente</th><th>Precio Tercero</th><th>Acción</th></tr></thead>
+                <tbody id="T_SUBLI"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Creación/Edición -->
+<div id="miModal" class="modal">
+    <div class="modal-content">
+        <h3 id="tituloModal">Nuevo Material</h3>
+        <input type="hidden" id="editId">
+        <input type="hidden" id="linea">
+        
+        <label>Nombre del Material / Servicio</label>
+        <input type="text" id="nombre" placeholder="Ej: Vinilo Adhesivo Blanco" autocomplete="off">
+        
+        <label>Unidad de Venta</label>
+        <select id="unidad">
+            <option value="cm2">cm² (Cálculo por área)</option>
+            <option value="mt">Metro Lineal</option>
+            <option value="Pliego">Pliego</option>
+            <option value="Unidad">Unidad Fija</option>
+        </select>
+        
+        <div class="grid">
+            <div><label>P. Cliente ($)</label><input type="number" id="pCli" placeholder="0"></div>
+            <div><label>Mín. Cliente ($)</label><input type="number" id="mCli" placeholder="0"></div>
+        </div>
+        <div class="grid">
+            <div><label>P. Tercero ($)</label><input type="number" id="pTer" placeholder="0"></div>
+            <div><label>Mín. Tercero ($)</label><input type="number" id="mTer" placeholder="0"></div>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn-save" id="btnGuardarModal">Guardar</button>
+            <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+        authDomain: "modu-6b2b5.firebaseapp.com",
+        projectId: "modu-6b2b5",
+        storageBucket: "modu-6b2b5.firebasestorage.app",
+        messagingSenderId: "139925953689",
+        appId: "1:139925953689:web:6f55990a882e4d652bac08"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const dbCloud = getFirestore(app);
+
+    let tarifarioBD = [];
+
+    // 1. Escuchar la colección de Firebase en Tiempo Real
+    onSnapshot(collection(dbCloud, "tarifario"), (snapshot) => {
+        tarifarioBD = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+        // Guardamos copia local por si otros módulos viejos aún la necesitan
+        localStorage.setItem("materiales_modu", JSON.stringify(tarifarioBD));
+        dibujarTablas();
+    });
+
+    // Control de Pestañas
+    window.verTab = (e, id) => {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('P_' + id).classList.add('active');
+        e.currentTarget.classList.add('active');
+    };
+
+    // Formateo de moneda
+    const fmt = (v) => v !== undefined && v !== null ? Number(v).toLocaleString('es-CO') : "0";
+
+    window.dibujarTablas = () => {
+        const tabs = ['GF', 'LITO', 'LASER', 'SUBLI'];
+        tabs.forEach(t => {
+            const el = document.getElementById('T_' + t);
+            if(el) el.innerHTML = "";
+        });
+
+        if (tarifarioBD.length === 0) {
+            tabs.forEach(t => {
+                const el = document.getElementById('T_' + t);
+                if(el) el.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No hay tarifas registradas o cargando desde la nube...</td></tr>`;
+            });
+            return;
+        }
+
+        tarifarioBD.forEach(m => {
+            let lin = m.linea;
+            if(!lin) return; 
+            
+            // Compatibilidad con registros viejos que subiste la otra vez
+            if(lin.includes("Formato")) lin = "GF";
+            if(lin.includes("Litografia")) lin = "LITO";
+            if(lin.includes("Laser")) lin = "LASER";
+            if(lin.includes("Sublimacion")) lin = "SUBLI";
+
+            const tabla = document.getElementById('T_' + lin);
+            if(tabla) {
+                // Generamos un string de los parámetros para enviarlos seguro a la función de abrir modal
+                const stringId = `'${m.firebaseId}'`;
+                
+                tabla.innerHTML += `<tr>
+                    <td><strong>${m.nombre || 'Sin Nombre'}</strong></td>
+                    <td><span style="color:#64748b; background:#f1f5f9; padding:3px 8px; border-radius:4px; font-size:12px;">${m.unidad || 'und'}</span></td>
+                    <td><span class="precio-cli">$ ${fmt(m.pCli)}</span> <span class="min-label">Mínimo: $ ${fmt(m.mCli)}</span></td>
+                    <td><span class="precio-ter">$ ${fmt(m.pTer)}</span> <span class="min-label">Mínimo: $ ${fmt(m.mTer)}</span></td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="abrirModal('${lin}', ${stringId})">Editar</button>
+                        <button class="btn-action btn-delete" onclick="borrarNube(${stringId})">Borrar</button>
+                    </td>
+                </tr>`;
+            }
+        });
+    };
+
+    // Operaciones Modal
+    window.abrirModal = (linea, firebaseId = null) => {
+        document.getElementById('miModal').style.display = 'block';
+        document.getElementById('linea').value = linea;
+        document.getElementById('editId').value = firebaseId || "";
+        
+        const inputNombre = document.getElementById('nombre');
+        inputNombre.classList.remove("error");
+
+        if(firebaseId) {
+            const m = tarifarioBD.find(x => x.firebaseId === firebaseId);
+            document.getElementById('tituloModal').innerText = "Editar Tarifa";
+            document.getElementById('nombre').value = m.nombre;
+            document.getElementById('unidad').value = m.unidad;
+            document.getElementById('pCli').value = m.pCli || "";
+            document.getElementById('mCli').value = m.mCli || "";
+            document.getElementById('pTer').value = m.pTer || "";
+            document.getElementById('mTer').value = m.mTer || "";
+        } else {
+            document.getElementById('tituloModal').innerText = "Nueva Tarifa";
+            document.getElementById('nombre').value = "";
+            document.getElementById('unidad').value = "cm2";
+            document.getElementById('pCli').value = "";
+            document.getElementById('mCli').value = "";
+            document.getElementById('pTer').value = "";
+            document.getElementById('mTer').value = "";
+        }
+        
+        inputNombre.focus();
+    };
+
+    window.cerrarModal = () => { document.getElementById('miModal').style.display = 'none'; };
+
+    // Guardar directo a Firebase
+    document.getElementById("btnGuardarModal").addEventListener("click", async () => {
+        const btn = document.getElementById("btnGuardarModal");
+        const nombreInput = document.getElementById('nombre');
+        const nombreVal = nombreInput.value.trim().toUpperCase();
+
+        if (!nombreVal) {
+            alert("El nombre del material es obligatorio.");
+            nombreInput.focus();
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Guardando...";
+
+        const firebaseId = document.getElementById('editId').value;
+        const idDocumento = firebaseId ? firebaseId : Date.now().toString(); // Si es nuevo usamos timestamp como ID
+
+        const dataGuardar = {
+            id: idDocumento, // Mantener para compatibilidad vieja
+            linea: document.getElementById('linea').value,
+            nombre: nombreVal,
+            unidad: document.getElementById('unidad').value,
+            pCli: parseFloat(document.getElementById('pCli').value) || 0,
+            mCli: parseFloat(document.getElementById('mCli').value) || 0,
+            pTer: parseFloat(document.getElementById('pTer').value) || 0,
+            mTer: parseFloat(document.getElementById('mTer').value) || 0,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            // Guardamos o actualizamos en Firebase (Sobreescribe si existe el ID, si no lo crea)
+            await setDoc(doc(dbCloud, "tarifario", idDocumento), dataGuardar);
+            cerrarModal();
+        } catch (error) {
+            console.error("Error guardando en nube:", error);
+            alert("Hubo un error al guardar la tarifa en la base de datos.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Guardar";
+        }
+    });
+
+    // Borrar de Firebase
+    window.borrarNube = async (firebaseId) => {
+        if(confirm("¿Seguro que deseas eliminar permanentemente este material del tarifario?")) {
+            try {
+                await deleteDoc(doc(dbCloud, "tarifario", firebaseId));
+            } catch (error) {
+                console.error("Error borrando:", error);
+                alert("Error al intentar borrar el registro.");
+            }
+        }
+    };
+</script>
+</body>
+</html>

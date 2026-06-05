@@ -2,251 +2,126 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>MODU · Configuración Grafik</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU · Configuración</title>
+
 <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; margin: 0; padding-bottom: 50px; }
-    header { background: #111; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-    .container { padding: 20px; max-width: 1000px; margin: auto; }
-    .tabs { display: flex; gap: 5px; }
-    .tab { padding: 12px 20px; background: #d1d5db; cursor: pointer; border-radius: 8px 8px 0 0; border: none; font-weight: bold; }
-    .tab.active { background: white; color: #3498db; border-top: 3px solid #3498db; }
-    .panel { background: white; padding: 25px; border-radius: 0 8px 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
-    .panel.active { display: block; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { text-align: left; background: #f8fafc; padding: 12px; border-bottom: 2px solid #eee; font-size: 11px; color: #666; text-transform: uppercase; }
-    td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-    .modal-content { background: white; margin: 5% auto; padding: 25px; border-radius: 12px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    label { display: block; font-size: 11px; font-weight: bold; margin-top: 15px; text-transform: uppercase; }
-    input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .btn-add { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; float: right; font-weight: bold; }
-    .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 20px; }
-    .btn-cancel { background: #eee; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
-    .btn-nube { background: #e67e22; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f6f8; margin:0; color: #334155; }
+
+header {
+  background:#111; color:#fff; padding:15px;
+  display:flex; align-items:center; justify-content: space-between;
+}
+.left { display:flex; align-items:center; gap:15px; }
+.home-icon { width:22px; height:22px; fill:#f2f2f2; cursor:pointer; transition: 0.2s; }
+.home-icon:hover { fill: #3498db; }
+strong { font-size: 16px; }
+
+.container {
+  padding:20px;
+  max-width: 800px;
+  margin: 0 auto;
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:20px;
+}
+
+.modulo {
+  background:#fff;
+  padding:25px 20px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  border: 1px solid #e2e8f0;
+  transition: 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modulo-icon {
+  width: 32px;
+  height: 32px;
+  fill: #475569;
+  margin-bottom: 12px;
+  transition: 0.2s ease-in-out;
+}
+
+.modulo:hover {
+  background:#f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  border-color: #cbd5e1;
+}
+
+.modulo:hover .modulo-icon { fill: #3498db; }
+
+.modulo-titulo { font-size: 16px; font-weight: bold; color: #1e293b; }
+
+.badge-nube {
+  display: block; font-size: 11px; color: #3498db;
+  margin-top: 6px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;
+}
+
+.proximamente { opacity: .4; cursor: not-allowed; background: #f1f5f9; }
+.proximamente:hover { transform: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-color: #e2e8f0; background: #f1f5f9; }
+.proximamente .modulo-icon { fill: #94a3b8; }
+.proximamente:hover .modulo-icon { fill: #94a3b8; }
+.badge-espera { display: block; font-size: 11px; color: #64748b; margin-top: 6px; text-transform: uppercase; font-weight: bold; }
+
+@media (max-width: 480px) {
+    header { padding: 12px; }
+    strong { font-size: 14px; }
+    .container { grid-template-columns: 1fr; gap: 15px; padding: 15px; }
+    .modulo { padding: 25px 20px; }
+}
 </style>
 </head>
+
 <body>
 
 <header>
-    <div>
-        <span style="cursor:pointer;" onclick="location.href='index.html'">⬅ MODU</span>
-        <span>| Tarifario Maestro</span>
-    </div>
-    <button class="btn-nube" onclick="sincronizarNube()">☁ Sincronizar Tarifas</button>
+  <div class="left">
+    <svg class="home-icon" onclick="location.href='index.html'" viewBox="0 0 24 24">
+      <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
+    </svg>
+    <strong>Configuración</strong>
+  </div>
+  <span style="font-weight: 900; color: #3498db; letter-spacing: -1px; font-size: 18px;">MODU</span>
 </header>
 
 <div class="container">
-    <div class="tabs">
-        <button class="tab active" onclick="verTab(event, 'GF')">Gran Formato</button>
-        <button class="tab" onclick="verTab(event, 'LITO')">Litografía</button>
-        <button class="tab" onclick="verTab(event, 'LASER')">Corte Láser</button>
-        <button class="tab" onclick="verTab(event, 'SUBLI')">Sublimación</button>
-    </div>
 
-    <div id="P_GF" class="panel active">
-        <button class="btn-add" onclick="abrirModal('GF')">+ Crear Material</button>
-        <h3>Gran Formato y Plotter</h3>
-        <table>
-            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
-            <tbody id="T_GF"></tbody>
-        </table>
-    </div>
+  <!-- Tarifario -->
+  <div class="modulo" onclick="location.href='tarifas.html'">
+    <svg class="modulo-icon" viewBox="0 0 24 24">
+      <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+    </svg>
+    <div class="modulo-titulo">Tarifario Maestro</div>
+    <span class="badge-nube">Precios en línea</span>
+  </div>
 
-    <div id="P_LITO" class="panel">
-        <button class="btn-add" onclick="abrirModal('LITO')">+ Crear Material</button>
-        <h3>Litografía Digital</h3>
-        <table>
-            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
-            <tbody id="T_LITO"></tbody>
-        </table>
-    </div>
+  <!-- Ajustes de Empresa (Futuro) -->
+  <div class="modulo proximamente">
+    <svg class="modulo-icon" viewBox="0 0 24 24">
+      <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+    </svg>
+    <div class="modulo-titulo">Datos de Empresa</div>
+    <span class="badge-espera">Próximamente</span>
+  </div>
 
-    <div id="P_LASER" class="panel">
-        <button class="btn-add" onclick="abrirModal('LASER')">+ Crear Material</button>
-        <h3>Corte Láser / Router</h3>
-        <table>
-            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
-            <tbody id="T_LASER"></tbody>
-        </table>
-    </div>
+  <!-- Usuarios (Futuro) -->
+  <div class="modulo proximamente">
+    <svg class="modulo-icon" viewBox="0 0 24 24">
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+    </svg>
+    <div class="modulo-titulo">Usuarios y Permisos</div>
+    <span class="badge-espera">Próximamente</span>
+  </div>
 
-    <div id="P_SUBLI" class="panel">
-        <button class="btn-add" onclick="abrirModal('SUBLI')">+ Crear Material</button>
-        <h3>Sublimación</h3>
-        <table>
-            <thead><tr><th>Material</th><th>Unidad</th><th>P. Cliente (Mín)</th><th>P. Tercero (Mín)</th><th>Acción</th></tr></thead>
-            <tbody id="T_SUBLI"></tbody>
-        </table>
-    </div>
 </div>
 
-<div id="miModal" class="modal">
-    <div class="modal-content">
-        <h3 id="tituloModal">Nuevo Material</h3>
-        <input type="hidden" id="editId"><input type="hidden" id="linea">
-        <label>Nombre del Material / Servicio</label><input type="text" id="nombre" placeholder="Ej: Vinilo Adhesivo">
-        <label>Unidad de Medida</label>
-        <select id="unidad">
-            <option value="cm2">cm2 (Cálculo Automático)</option>
-            <option value="mt">Metro Lineal</option>
-            <option value="Pliego">Pliego</option>
-            <option value="Unidad">Unidad Fija</option>
-        </select>
-        <div class="grid">
-            <div><label>P. Cliente ($)</label><input type="number" id="pCli" value="0"></div>
-            <div><label>Mín. Cliente ($)</label><input type="number" id="mCli" value="0"></div>
-        </div>
-        <div class="grid">
-            <div><label>P. Tercero ($)</label><input type="number" id="pTer" value="0"></div>
-            <div><label>Mín. Tercero ($)</label><input type="number" id="mTer" value="0"></div>
-        </div>
-        <button class="btn-save" onclick="guardar()">Guardar en MODU</button>
-        <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
-        authDomain: "modu-6b2b5.firebaseapp.com",
-        projectId: "modu-6b2b5",
-        storageBucket: "modu-6b2b5.firebasestorage.app",
-        messagingSenderId: "139925953689",
-        appId: "1:139925953689:web:6f55990a882e4d652bac08"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const dbCloud = getFirestore(app);
-
-    window.sincronizarNube = async () => {
-        try {
-            const locales = JSON.parse(localStorage.getItem("materiales_modu")) || [];
-            if (locales.length === 0) {
-                alert("⚠️ No hay materiales locales para subir. Revisa primero que aparezcan en pantalla.");
-                return;
-            }
-            for (let m of locales) {
-                await setDoc(doc(dbCloud, "tarifario", m.id.toString()), m);
-            }
-            const querySnapshot = await getDocs(collection(dbCloud, "tarifario"));
-            const listaNube = querySnapshot.docs.map(doc => doc.data());
-            localStorage.setItem("materiales_modu", JSON.stringify(listaNube));
-            
-            alert("✅ Tarifas de Grafik sincronizadas con éxito en la nube de Firebase.");
-            location.reload();
-        } catch (e) {
-            console.error(e);
-            alert("Error de conexión. Revisa el internet.");
-        }
-    };
-</script>
-
-<script>
-    let db = JSON.parse(localStorage.getItem("materiales_modu")) || [];
-
-    function verTab(e, id) {
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('P_' + id).classList.add('active');
-        e.currentTarget.classList.add('active');
-    }
-
-    function abrirModal(linea, id = null) {
-        document.getElementById('miModal').style.display = 'block';
-        document.getElementById('linea').value = linea;
-        document.getElementById('editId').value = id || "";
-        
-        if(id) {
-            let m = db.find(x => x.id == id);
-            document.getElementById('tituloModal').innerText = "Editar Material";
-            document.getElementById('nombre').value = m.nombre;
-            document.getElementById('unidad').value = m.unidad;
-            document.getElementById('pCli').value = m.pCli || 0;
-            document.getElementById('mCli').value = m.mCli || 0;
-            document.getElementById('pTer').value = m.pTer || 0;
-            document.getElementById('mTer').value = m.mTer || 0;
-        } else {
-            document.getElementById('tituloModal').innerText = "Nuevo Material";
-            document.getElementById('nombre').value = "";
-            document.getElementById('unidad').value = "cm2";
-            document.getElementById('pCli').value = 0;
-            document.getElementById('mCli').value = 0;
-            document.getElementById('pTer').value = 0;
-            document.getElementById('mTer').value = 0;
-        }
-    }
-
-    function cerrarModal() { document.getElementById('miModal').style.display = 'none'; }
-
-    function guardar() {
-        let id = document.getElementById('editId').value;
-        let obj = {
-            id: id ? parseInt(id) : Date.now(),
-            linea: document.getElementById('linea').value,
-            nombre: document.getElementById('nombre').value,
-            unidad: document.getElementById('unidad').value,
-            pCli: parseFloat(document.getElementById('pCli').value) || 0,
-            mCli: parseFloat(document.getElementById('mCli').value) || 0,
-            pTer: parseFloat(document.getElementById('pTer').value) || 0,
-            mTer: parseFloat(document.getElementById('mTer').value) || 0
-        };
-        if(id) db = db.map(x => x.id == id ? obj : x);
-        else db.push(obj);
-        localStorage.setItem("materiales_modu", JSON.stringify(db));
-        cerrarModal();
-        dibujar();
-    }
-
-    function dibujar() {
-        const tabs = ['GF', 'LITO', 'LASER', 'SUBLI'];
-        tabs.forEach(t => {
-            const el = document.getElementById('T_' + t);
-            if(el) el.innerHTML = "";
-        });
-
-        db.forEach(m => {
-            let lin = m.linea;
-            if(!lin) return; // Si no tiene línea, se lo salta para no dañar nada
-            
-            if(lin.includes("Formato")) lin = "GF";
-            if(lin.includes("Litografia")) lin = "LITO";
-            if(lin.includes("Laser")) lin = "LASER";
-            if(lin.includes("Sublimacion")) lin = "SUBLI";
-
-            let tabla = document.getElementById('T_' + lin);
-            if(tabla) {
-                // Blindaje contra valores vacíos (undefined) antes del toLocaleString
-                let precioCli = (m.pCli !== undefined && m.pCli !== null) ? m.pCli.toLocaleString() : "0";
-                let minCli = (m.mCli !== undefined && m.mCli !== null) ? m.mCli.toLocaleString() : "0";
-                let precioTer = (m.pTer !== undefined && m.pTer !== null) ? m.pTer.toLocaleString() : "0";
-                let minTer = (m.mTer !== undefined && m.mTer !== null) ? m.mTer.toLocaleString() : "0";
-
-                tabla.innerHTML += `<tr>
-                    <td><b>${m.nombre || 'Sin Nombre'}</b></td>
-                    <td><span style="color:#7f8c8d">${m.unidad || 'und'}</span></td>
-                    <td><b>$${precioCli}</b> <br><small>Mín: $${minCli}</small></td>
-                    <td><b>$${precioTer}</b> <br><small>Mín: $${minTer}</small></td>
-                    <td>
-                        <button onclick="abrirModal('${lin}', ${m.id})" style="border:none; background:#f39c12; color:white; padding:5px 8px; border-radius:4px; cursor:pointer;">✎</button>
-                        <button onclick="borrar(${m.id})" style="border:none; background:#e74c3c; color:white; padding:5px 8px; border-radius:4px; cursor:pointer;">🗑</button>
-                    </td>
-                </tr>`;
-            }
-        });
-    }
-
-    function borrar(id) {
-        if(confirm("¿Seguro que deseas eliminar este material del tarifario?")) {
-            db = db.filter(x => x.id != id);
-            localStorage.setItem("materiales_modu", JSON.stringify(db));
-            dibujar();
-        }
-    }
-    dibujar();
-</script>
 </body>
 </html>
