@@ -2,69 +2,80 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<!-- Etiqueta obligatoria para el diseño en celulares -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MODU - Comprobante de Egreso</title>
 
 <style>
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; overflow: hidden; } 
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; color: #334155; } 
 
 .container {
     max-width: 500px; 
     margin: 20px auto; 
     background: #fff;
-    padding: 15px 25px; 
+    padding: 20px 25px; 
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-h2 { margin: 0 0 5px 0; font-size: 1.4rem; color: #2c3e50; }
-.numero { font-size: 16px; margin-bottom: 10px; color: #e74c3c; } 
+h2 { margin: 0 0 5px 0; font-size: 22px; color: #2c3e50; }
+.numero { font-size: 16px; margin-bottom: 15px; color: #e74c3c; font-weight: bold; }
 
 label { 
     display: block; 
-    margin-top: 8px; 
+    margin-top: 15px; 
     font-weight: bold; 
-    font-size: 12px; 
+    font-size: 13px; 
     color: #34495e; 
     text-transform: uppercase;
 }
 
 input, select, textarea { 
     width: 100%; 
-    padding: 8px; 
-    margin-top: 2px; 
+    padding: 12px; 
+    margin-top: 5px; 
     box-sizing: border-box; 
     border: 1px solid #dce4ec; 
     border-radius: 6px; 
-    font-size: 14px;
+    font-size: 15px;
 }
 
-textarea { height: 50px; resize: none; } 
+textarea { height: 60px; resize: none; } 
 
-input:focus, select:focus { 
+input:focus, select:focus, textarea:focus { 
     outline: none; 
     border-color: #e74c3c; 
-    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2); 
     background-color: #fff5f5; 
 }
 
-.botones { margin-top: 20px; display: flex; gap: 10px; }
+.botones { margin-top: 25px; display: flex; gap: 10px; }
 button {
-    flex: 1; padding: 10px; border: none; border-radius: 8px; 
-    cursor: pointer; font-weight: bold; font-size: 14px;
+    flex: 1; padding: 14px; border: none; border-radius: 8px; 
+    cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
 }
 
 .guardar { background: #3498db; color: #fff; }
+.guardar:hover { background: #2980b9; }
 .pdf { background: #2ecc71; color: #fff; }
+.pdf:hover { background: #27ae60; }
 .cancelar { background: #f1f2f6; color: #57606f; }
+.cancelar:hover { background: #e2e8f0; }
 
-.error { border: 2px solid red !important; }
+.error { border-color: #e74c3c !important; background-color: #fdedec !important; }
 
-.container {
-    animation: slideIn 0.3s ease-out;
-}
+/* Animación de entrada suave */
+.container { animation: slideIn 0.3s ease-out; }
 @keyframes slideIn {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+/* AJUSTES PARA CELULAR */
+@media (max-width: 480px) {
+    .container { margin: 15px; padding: 20px; border-radius: 10px; }
+    .botones { flex-direction: column; gap: 10px; }
+    button { width: 100%; padding: 12px; }
+    label { font-size: 12px; margin-top: 12px; }
 }
 </style>
 </head>
@@ -74,10 +85,10 @@ button {
 <div class="container">
   <div style="display: flex; justify-content: space-between; align-items: center;">
       <h2>Comprobante de Egreso</h2>
-      <span style="font-weight: 900; color: #e74c3c; letter-spacing: -1px;">MODU</span>
+      <span style="font-weight: 900; color: #e74c3c; letter-spacing: -1px; font-size: 20px;">MODU</span>
   </div>
   
-  <div class="numero" id="numeroComprobante"></div>
+  <div class="numero" id="numeroComprobante">Cargando consecutivo...</div>
   
   <label>Fecha del Egreso *</label>
   <input id="fechaManual" type="date">
@@ -90,113 +101,26 @@ button {
   <textarea id="descripcion" placeholder="¿En qué se gastó la plata?"></textarea>
 
   <label>Cuenta origen *</label>
-  <select id="cuenta"></select>
+  <select id="cuenta">
+      <option value="">Cargando cuentas...</option>
+  </select>
 
   <label>Valor *</label>
-  <input id="valor" type="text" placeholder="0" style="font-size: 20px; font-weight: bold; color: #e74c3c;">
+  <input id="valor" type="text" placeholder="0" style="font-size: 22px; font-weight: bold; color: #e74c3c;">
 
   <label>Asignar OP (opcional)</label>
   <input id="op" placeholder="Ej: OP-2024-001">
 
   <div class="botones">
-    <button class="guardar" onclick="guardar(false)">Guardar</button>
-    <button class="pdf" onclick="guardar(true)">Guardar y PDF</button>
+    <button class="guardar" id="btnGuardar" onclick="ejecutarGuardado(false)">Guardar</button>
+    <button class="pdf" id="btnPdf" onclick="ejecutarGuardado(true)">Guardar y PDF</button>
     <button class="cancelar" onclick="location.href='egresos.html'">Cancelar</button>
   </div>
 </div>
 
-<script>
-const hoy = new Date();
-const fechaHoy = hoy.toISOString().split("T")[0];
-document.getElementById("fechaManual").value = fechaHoy;
-
-let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
-let cuentas  = JSON.parse(localStorage.getItem("cuentas")) || [];
-let egresos  = JSON.parse(localStorage.getItem("egresos")) || [];
-
-const numero = egresos.length + 1;
-document.getElementById("numeroComprobante").innerText = "Comprobante No. " + numero;
-
-const datalistProv = document.getElementById("listaProveedores");
-datalistProv.innerHTML = clientes
-    .filter(c => c.tipo === "Proveedor")
-    .map(c => `<option value="${c.nombre}">`).join("");
-
-document.getElementById("cuenta").innerHTML =
-  '<option value="">Seleccione cuenta...</option>' +
-  cuentas.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join("");
-
-const valorInput = document.getElementById("valor");
-valorInput.addEventListener("input", () => {
-  let limpio = valorInput.value.replace(/\D/g, "");
-  valorInput.value = limpio.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-});
-
-async function guardar(generarPDF){
-  const proveedorInput = document.getElementById("proveedorInput");
-  const descripcion = document.getElementById("descripcion");
-  const cuenta = document.getElementById("cuenta");
-  const op = document.getElementById("op");
-  const fechaInput = document.getElementById("fechaManual");
-
-  let ok = true;
-  document.querySelectorAll(".error").forEach(e=>e.classList.remove("error"));
-
-  if(!fechaInput.value){ fechaInput.classList.add("error"); ok=false; }
-  
-  const provExiste = clientes.some(c => c.nombre.toUpperCase() === proveedorInput.value.trim().toUpperCase() && c.tipo === "Proveedor");
-  if(!proveedorInput.value || !provExiste){ 
-      proveedorInput.classList.add("error"); 
-      if(proveedorInput.value && !provExiste) alert("Ese proveedor no existe.");
-      ok=false; 
-  }
-
-  if(!descripcion.value.trim()){ descripcion.classList.add("error"); ok=false; }
-  if(!cuenta.value){ cuenta.classList.add("error"); ok=false; }
-  if(!valorInput.value){ valorInput.classList.add("error"); ok=false; }
-
-  if(!ok) return;
-
-  const valor = Number(valorInput.value.replace(/\./g,""));
-  if(valor<=0) return alert("Valor inválido");
-
-  const fechaSeleccionada = fechaInput.value;
-  const partes = fechaSeleccionada.split("-");
-
-  const dataEgreso = {
-    id: Date.now(),
-    comprobante: numero,
-    proveedor: proveedorInput.value.trim(),
-    fecha: fechaSeleccionada,
-    mes: parseInt(partes[1]),
-    anio: parseInt(partes[0]),
-    descripcion: descripcion.value.toUpperCase(),
-    cuenta: cuenta.value,
-    valor: valor,
-    op: op.value,
-    estado: "ACTIVO"
-  };
-
-  // --- MANDAR A LA NUBE DE GRAFIK ---
-  await window.guardarDato('egresos', dataEgreso);
-
-  egresos.push(dataEgreso);
-
-  cuentas = cuentas.map(c =>
-    c.nombre === cuenta.value ? { ...c, saldo: Number(c.saldo) - valor } : c
-  );
-
-  localStorage.setItem("egresos", JSON.stringify(egresos));
-  localStorage.setItem("cuentas", JSON.stringify(cuentas));
-
-  if(generarPDF) alert("MODU: Generando Egreso PDF...");
-  window.location.href = "egresos.html";
-}
-</script>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -210,14 +134,127 @@ async function guardar(generarPDF){
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.guardarDato = async (nombreColeccion, objetoDatos) => {
-    try {
-      await addDoc(collection(db, nombreColeccion), objetoDatos);
-      console.log("Egreso guardado en Firebase");
-    } catch (e) {
-      console.error("Error al subir a la nube:", e);
-    }
+  // Inicialización de la fecha
+  const hoy = new Date();
+  document.getElementById("fechaManual").value = hoy.toISOString().split("T")[0];
+
+  // Formato automático de moneda
+  const valorInput = document.getElementById("valor");
+  valorInput.addEventListener("input", () => {
+    let limpio = valorInput.value.replace(/\D/g, "");
+    valorInput.value = limpio.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  });
+
+  let proximoEgreso = 1;
+  let proveedoresNube = [];
+  let cuentasLocal = JSON.parse(localStorage.getItem("cuentas")) || [];
+
+  // Función para preparar todo antes de permitir el registro
+  async function cargarDatosIniciales() {
+      try {
+          // 1. Cargar número de egreso actual leyendo Firebase
+          const egresosSnap = await getDocs(collection(db, "egresos"));
+          proximoEgreso = egresosSnap.size + 1;
+          document.getElementById("numeroComprobante").innerText = "Comprobante No. " + proximoEgreso;
+
+          // 2. Cargar proveedores desde Firebase
+          const clientesSnap = await getDocs(collection(db, "clientes"));
+          proveedoresNube = clientesSnap.docs
+              .map(doc => doc.data())
+              .filter(c => c.tipo && c.tipo.toLowerCase() === "proveedor");
+          
+          const datalistProv = document.getElementById("listaProveedores");
+          datalistProv.innerHTML = proveedoresNube
+              .map(c => `<option value="${c.nombre}">`).join("");
+
+          // 3. Cargar cuentas locales (Mientras las pasamos a la nube)
+          const selectCuenta = document.getElementById("cuenta");
+          selectCuenta.innerHTML = '<option value="">Seleccione cuenta...</option>' +
+            cuentasLocal.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join("");
+
+      } catch (error) {
+          console.error("Error cargando datos:", error);
+          document.getElementById("numeroComprobante").innerText = "Error de conexión";
+      }
   }
+
+  window.ejecutarGuardado = async (generarPDF) => {
+      const btnGuardar = document.getElementById("btnGuardar");
+      const btnPdf = document.getElementById("btnPdf");
+      
+      const proveedorInput = document.getElementById("proveedorInput");
+      const descripcion = document.getElementById("descripcion");
+      const cuenta = document.getElementById("cuenta");
+      const op = document.getElementById("op");
+      const fechaInput = document.getElementById("fechaManual");
+
+      let ok = true;
+      document.querySelectorAll(".error").forEach(e=>e.classList.remove("error"));
+
+      if(!fechaInput.value){ fechaInput.classList.add("error"); ok=false; }
+      
+      const provExiste = proveedoresNube.some(c => c.nombre.toUpperCase() === proveedorInput.value.trim().toUpperCase());
+      if(!proveedorInput.value || !provExiste){ 
+          proveedorInput.classList.add("error"); 
+          if(proveedorInput.value && !provExiste) alert("Ese proveedor no existe en tu base de datos. Créalo primero.");
+          ok=false; 
+      }
+
+      if(!descripcion.value.trim()){ descripcion.classList.add("error"); ok=false; }
+      if(!cuenta.value){ cuenta.classList.add("error"); ok=false; }
+      if(!valorInput.value){ valorInput.classList.add("error"); ok=false; }
+
+      const valorFinal = Number(valorInput.value.replace(/\./g,""));
+      if(valorFinal <= 0) { alert("Valor inválido"); ok=false; }
+
+      if(!ok) return;
+
+      // Bloquear botones mientras guarda
+      btnGuardar.disabled = true; btnGuardar.innerText = "Guardando...";
+      btnPdf.disabled = true; btnPdf.innerText = "Guardando...";
+
+      const partesFecha = fechaInput.value.split("-");
+      const dataEgreso = {
+          id: Date.now(), 
+          comprobante: proximoEgreso,
+          proveedor: proveedorInput.value.trim().toUpperCase(),
+          fecha: fechaInput.value,
+          mes: parseInt(partesFecha[1]),
+          anio: parseInt(partesFecha[0]),
+          descripcion: descripcion.value.trim().toUpperCase(),
+          cuenta: cuenta.value,
+          valor: valorFinal,
+          op: op.value.trim().toUpperCase() || "",
+          estado: "ACTIVO",
+          timestamp: new Date().toISOString()
+      };
+
+      try {
+          // 1. Enviar a Firebase
+          await addDoc(collection(db, "egresos"), dataEgreso);
+
+          // 2. Restar el saldo local de la cuenta (mientras las migramos)
+          cuentasLocal = cuentasLocal.map(c =>
+              c.nombre === cuenta.value ? { ...c, saldo: Number(c.saldo) - valorFinal } : c
+          );
+          localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
+
+          if(generarPDF) {
+              alert("MODU: Simulando generación de Egreso PDF en la nube...");
+          }
+          
+          window.location.href = "egresos.html";
+
+      } catch (error) {
+          console.error("Error al guardar:", error);
+          alert("Error de conexión. No se pudo guardar el egreso.");
+          btnGuardar.disabled = false; btnGuardar.innerText = "Guardar";
+          btnPdf.disabled = false; btnPdf.innerText = "Guardar y PDF";
+      }
+  };
+
+  // Arrancar la carga de datos
+  cargarDatosIniciales();
 </script>
 
 </body>
