@@ -2,102 +2,100 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>GRapp - Nueva Cuenta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU - Nueva Cuenta</title>
 
 <style>
-body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; color: #334155; } 
 
 .container {
-    max-width: 500px;
-    margin: 40px auto;
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 500px; 
+    margin: 40px auto; 
+    background: #fff;
+    padding: 20px 25px; 
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-label { display: block; margin-top: 15px; font-weight: bold; color: #2c3e50; }
+h2 { margin: 0 0 20px 0; font-size: 22px; color: #2c3e50; }
+
+label { 
+    display: block; 
+    margin-top: 15px; 
+    font-weight: bold; 
+    font-size: 13px; 
+    color: #34495e; 
+    text-transform: uppercase;
+}
 
 input { 
     width: 100%; 
-    padding: 10px; 
+    padding: 12px; 
     margin-top: 5px; 
     box-sizing: border-box; 
     border: 1px solid #dce4ec; 
-    border-radius: 6px;
+    border-radius: 6px; 
+    font-size: 15px;
 }
 
-.mayus { text-transform: uppercase; }
+input:focus { 
+    outline: none; 
+    border-color: #3498db; 
+    background-color: #f0f7fc; 
+}
 
-.botones { margin-top: 25px; display: flex; gap: 15px; }
-
+.botones { margin-top: 25px; display: flex; gap: 10px; }
 button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
+    flex: 1; padding: 14px; border: none; border-radius: 8px; 
+    cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
 }
 
-.guardar { background: #3498db; color: white; }
-.cancelar { background: #bdc3c7; color: #fff; }
+.guardar { background: #3498db; color: #fff; }
+.guardar:hover { background: #2980b9; }
+.cancelar { background: #f1f2f6; color: #57606f; }
+.cancelar:hover { background: #e2e8f0; }
+
+.error { border-color: #e74c3c !important; background-color: #fdedec !important; }
+
+/* Animación de entrada */
+.container { animation: slideIn 0.3s ease-out; }
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .container { margin: 20px 15px; padding: 20px; border-radius: 10px; }
+    .botones { flex-direction: column; gap: 10px; }
+    button { width: 100%; padding: 12px; }
+    label { font-size: 12px; margin-top: 12px; }
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h2>Crear Cuenta</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+      <h2>Crear Cuenta</h2>
+      <span style="font-weight: 900; color: #3498db; letter-spacing: -1px; font-size: 20px;">MODU</span>
+  </div>
+  
+  <label>Nombre de la Cuenta *</label>
+  <input id="nombre" placeholder="Ej: BANCOLOMBIA, EFECTIVO, NEQUI..." autocomplete="off">
 
-    <label>Nombre de la Cuenta *</label>
-    <input id="nombre" class="mayus" placeholder="Ej: BANCOLOMBIA, CAJA MAYOR...">
+  <label>Saldo inicial *</label>
+  <input id="saldo" type="number" value="0" style="font-size: 20px; font-weight: bold; color: #2c3e50;">
 
-    <label>Saldo inicial *</label>
-    <input id="saldo" type="number" value="0">
-
-    <div class="botones">
-        <button class="guardar" id="btnGuardar" onclick="guardar()">Guardar</button>
-        <button class="cancelar" onclick="location.href='cuentas.html'">Cancelar</button>
-    </div>
+  <div class="botones">
+    <button class="guardar" id="btnGuardar">Guardar Cuenta</button>
+    <button class="cancelar" type="button" onclick="location.href='cuentas.html'">Cancelar</button>
+  </div>
 </div>
-
-<script>
-// Referencia al botón para evitar doble clic
-const btnGuardar = document.getElementById("btnGuardar");
-
-async function guardar() {
-    const nombreInput = document.getElementById("nombre");
-    const saldoInput = document.getElementById("saldo");
-
-    if (!nombreInput.value.trim()) return alert("El nombre de la cuenta es obligatorio");
-
-    btnGuardar.disabled = true;
-    btnGuardar.innerText = "Guardando...";
-
-    const nuevaCuenta = {
-        id: Date.now(),
-        nombre: nombreInput.value.toUpperCase().trim(),
-        saldo: Number(saldoInput.value)
-    };
-
-    // --- SUBIR A FIREBASE ---
-    if (window.guardarEnNube) {
-        await window.guardarEnNube('cuentas', nuevaCuenta);
-    }
-
-    // --- GUARDAR LOCAL ---
-    let cuentas = JSON.parse(localStorage.getItem("cuentas")) || [];
-    cuentas.push(nuevaCuenta);
-    localStorage.setItem("cuentas", JSON.stringify(cuentas));
-
-    window.location.href = "cuentas.html";
-}
-</script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -111,15 +109,62 @@ async function guardar() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  window.guardarEnNube = async (coleccion, datos) => {
-    try {
-      await addDoc(collection(db, coleccion), datos);
-      console.log("Cuenta guardada en la nube");
-    } catch (e) {
-      console.error("Error en Firebase:", e);
-      alert("Error al guardar en la nube, pero se guardó localmente.");
-    }
-  }
+  const btnGuardar = document.getElementById("btnGuardar");
+
+  btnGuardar.addEventListener("click", async () => {
+      const nombreInput = document.getElementById("nombre");
+      const saldoInput = document.getElementById("saldo");
+
+      // Limpiar errores visuales previos
+      nombreInput.classList.remove("error");
+      saldoInput.classList.remove("error");
+
+      const nombreLimpio = nombreInput.value.trim().toUpperCase();
+      const saldoNum = Number(saldoInput.value);
+
+      // Validación de campo vacío
+      if (!nombreLimpio) {
+          nombreInput.classList.add("error");
+          alert("El nombre de la cuenta es obligatorio.");
+          return;
+      }
+
+      // Bloquear botón para evitar doble envío
+      btnGuardar.disabled = true;
+      btnGuardar.innerText = "Guardando...";
+
+      try {
+          // 1. Validar duplicados directamente con la base de datos en tiempo real
+          const snapshot = await getDocs(collection(db, "cuentas"));
+          const yaExiste = snapshot.docs.some(doc => doc.data().nombre.toUpperCase() === nombreLimpio);
+
+          if (yaExiste) {
+              nombreInput.classList.add("error");
+              alert("Ya existe una cuenta con ese nombre en la nube.");
+              btnGuardar.disabled = false;
+              btnGuardar.innerText = "Guardar Cuenta";
+              return;
+          }
+
+          // 2. Guardar en la colección definitiva de Firebase
+          const nuevaCuenta = {
+              nombre: nombreLimpio,
+              saldo: saldoNum,
+              timestamp: new Date().toISOString()
+          };
+
+          await addDoc(collection(db, "cuentas"), nuevaCuenta);
+          
+          // Redirección inmediata (la pantalla de cuentas se encargará de refrescar la lista y el caché local)
+          window.location.href = "cuentas.html";
+
+      } catch (error) {
+          console.error("Error al guardar cuenta:", error);
+          alert("Ocurrió un error de conexión al intentar guardar en la nube.");
+          btnGuardar.disabled = false;
+          btnGuardar.innerText = "Guardar Cuenta";
+      }
+  });
 </script>
 
 </body>

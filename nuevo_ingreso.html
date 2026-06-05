@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<!-- Etiqueta obligatoria para el diseño en celulares -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MODU - Recibo de Caja</title>
 
@@ -10,49 +9,24 @@
 body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; color: #334155; } 
 
 .container {
-    max-width: 500px; 
-    margin: 20px auto; 
-    background: #fff;
-    padding: 20px 25px; 
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 500px; margin: 20px auto; background: #fff;
+    padding: 20px 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 h2 { margin: 0 0 5px 0; font-size: 22px; color: #2c3e50; }
 .numero { font-size: 16px; margin-bottom: 15px; color: #3498db; font-weight: bold; }
 
-label { 
-    display: block; 
-    margin-top: 15px; 
-    font-weight: bold; 
-    font-size: 13px; 
-    color: #34495e; 
-    text-transform: uppercase;
-}
+label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #34495e; text-transform: uppercase; }
 
 input, select, textarea { 
-    width: 100%; 
-    padding: 12px; 
-    margin-top: 5px; 
-    box-sizing: border-box; 
-    border: 1px solid #dce4ec; 
-    border-radius: 6px; 
-    font-size: 15px;
+    width: 100%; padding: 12px; margin-top: 5px; box-sizing: border-box; 
+    border: 1px solid #dce4ec; border-radius: 6px; font-size: 15px;
 }
-
 textarea { height: 60px; resize: none; } 
-
-input:focus, select:focus, textarea:focus { 
-    outline: none; 
-    border-color: #3498db; 
-    background-color: #f0f7ff; 
-}
+input:focus, select:focus, textarea:focus { outline: none; border-color: #3498db; background-color: #f0f7ff; }
 
 .botones { margin-top: 25px; display: flex; gap: 10px; }
-button {
-    flex: 1; padding: 14px; border: none; border-radius: 8px; 
-    cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
-}
+button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
 
 .guardar { background: #3498db; color: #fff; }
 .guardar:hover { background: #2980b9; }
@@ -63,14 +37,6 @@ button {
 
 .error { border-color: #e74c3c !important; background-color: #fdedec !important; }
 
-/* Animación de entrada suave */
-.container { animation: slideIn 0.3s ease-out; }
-@keyframes slideIn {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* AJUSTES PARA CELULAR */
 @media (max-width: 480px) {
     .container { margin: 15px; padding: 20px; border-radius: 10px; }
     .botones { flex-direction: column; gap: 10px; }
@@ -102,7 +68,7 @@ button {
 
   <label>Cuenta destino *</label>
   <select id="cuenta">
-      <option value="">Cargando cuentas...</option>
+      <option value="">Cargando cuentas de la nube...</option>
   </select>
 
   <label>Valor *</label>
@@ -120,7 +86,7 @@ button {
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -134,11 +100,9 @@ button {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Inicialización de la fecha
   const hoy = new Date();
   document.getElementById("fechaManual").value = hoy.toISOString().split("T")[0];
 
-  // Formato automático de moneda
   const valorInput = document.getElementById("valor");
   valorInput.addEventListener("input", () => {
     let limpio = valorInput.value.replace(/\D/g, "");
@@ -147,29 +111,24 @@ button {
 
   let proximoRecibo = 1;
   let clientesNube = [];
-  let cuentasLocal = JSON.parse(localStorage.getItem("cuentas")) || [];
+  let cuentasNube = [];
 
-  // Función para preparar todo antes de permitir el registro
   async function cargarDatosIniciales() {
       try {
-          // 1. Cargar número de recibo actual leyendo Firebase
           const ingresosSnap = await getDocs(collection(db, "ingresos"));
-          proximoRecibo = ingresosSnap.size + 1; // Un contador simple por ahora
+          proximoRecibo = ingresosSnap.size + 1;
           document.getElementById("numeroRecibo").innerText = "Recibo No. " + proximoRecibo;
 
-          // 2. Cargar clientes desde Firebase
           const clientesSnap = await getDocs(collection(db, "clientes"));
           clientesNube = clientesSnap.docs.map(doc => doc.data());
-          
-          const datalistClientes = document.getElementById("listaClientes");
-          datalistClientes.innerHTML = clientesNube
+          document.getElementById("listaClientes").innerHTML = clientesNube
               .filter(c => c.tipo && c.tipo.toLowerCase() !== "proveedor")
               .map(c => `<option value="${c.nombre}">`).join("");
 
-          // 3. Cargar cuentas locales (Mientras las pasamos a la nube)
-          const selectCuenta = document.getElementById("cuenta");
-          selectCuenta.innerHTML = '<option value="">Seleccione cuenta...</option>' +
-            cuentasLocal.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join("");
+          const cuentasSnap = await getDocs(collection(db, "cuentas"));
+          cuentasNube = cuentasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          document.getElementById("cuenta").innerHTML = '<option value="">Seleccione cuenta...</option>' +
+            cuentasNube.map(c => `<option value="${c.id}">${c.nombre} ($ ${Number(c.saldo).toLocaleString()})</option>`).join("");
 
       } catch (error) {
           console.error("Error cargando datos:", error);
@@ -180,10 +139,9 @@ button {
   window.ejecutarGuardado = async (generarPDF) => {
       const btnGuardar = document.getElementById("btnGuardar");
       const btnPdf = document.getElementById("btnPdf");
-      
       const clienteInput = document.getElementById("clienteInput");
       const descripcion = document.getElementById("descripcion");
-      const cuenta = document.getElementById("cuenta");
+      const cuentaSelect = document.getElementById("cuenta");
       const op = document.getElementById("op");
       const fechaInput = document.getElementById("fechaManual");
 
@@ -195,12 +153,12 @@ button {
       const clienteValido = clientesNube.some(c => c.nombre.toUpperCase() === clienteInput.value.trim().toUpperCase());
       if(!clienteInput.value || !clienteValido){ 
           clienteInput.classList.add("error"); 
-          if(clienteInput.value && !clienteValido) alert("Ese cliente no existe en tu base de datos. Créalo primero.");
+          if(clienteInput.value && !clienteValido) alert("Ese cliente no existe en tu base de datos.");
           ok=false; 
       }
 
       if(!descripcion.value.trim()){ descripcion.classList.add("error"); ok=false; }
-      if(!cuenta.value){ cuenta.classList.add("error"); ok=false; }
+      if(!cuentaSelect.value){ cuentaSelect.classList.add("error"); ok=false; }
       if(!valorInput.value){ valorInput.classList.add("error"); ok=false; }
 
       const valorFinal = Number(valorInput.value.replace(/\./g,""));
@@ -208,20 +166,25 @@ button {
 
       if(!ok) return;
 
-      // Bloquear botones mientras guarda
       btnGuardar.disabled = true; btnGuardar.innerText = "Guardando...";
       btnPdf.disabled = true; btnPdf.innerText = "Guardando...";
 
+      // Lógica matemática para la cuenta
+      const cuentaId = cuentaSelect.value;
+      const cuentaSeleccionada = cuentasNube.find(c => c.id === cuentaId);
+      const nombreCuenta = cuentaSeleccionada.nombre;
+      const nuevoSaldo = Number(cuentaSeleccionada.saldo) + valorFinal;
+
       const partesFecha = fechaInput.value.split("-");
       const dataIngreso = {
-          id: Date.now(), // ID temporal heredado del código anterior
+          id: Date.now(),
           recibo: proximoRecibo,
           cliente: clienteInput.value.trim().toUpperCase(),
           fecha: fechaInput.value,
           mes: parseInt(partesFecha[1]),
           anio: parseInt(partesFecha[0]),
           descripcion: descripcion.value.trim().toUpperCase(),
-          cuenta: cuenta.value,
+          cuenta: nombreCuenta, // Guardamos el nombre para que el historial se vea bien
           valor: valorFinal,
           op: op.value.trim().toUpperCase() || "",
           estado: "ACTIVO",
@@ -229,20 +192,10 @@ button {
       };
 
       try {
-          // 1. Enviar a Firebase
           await addDoc(collection(db, "ingresos"), dataIngreso);
+          await updateDoc(doc(db, "cuentas", cuentaId), { saldo: nuevoSaldo }); // Actualiza saldo en Firebase
 
-          // 2. Actualizar el saldo local de la cuenta (mientras las migramos)
-          cuentasLocal = cuentasLocal.map(c =>
-              c.nombre === cuenta.value ? { ...c, saldo: Number(c.saldo) + valorFinal } : c
-          );
-          localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
-
-          if(generarPDF) {
-              alert("MODU: Simulando generación de comprobante PDF en la nube...");
-              // Aquí en el futuro puedes meter lógica para crear un PDF
-          }
-          
+          if(generarPDF) alert("MODU: Simulando generación de comprobante PDF...");
           window.location.href = "ingresos.html";
 
       } catch (error) {
@@ -253,7 +206,6 @@ button {
       }
   };
 
-  // Arrancar la carga de datos
   cargarDatosIniciales();
 </script>
 
