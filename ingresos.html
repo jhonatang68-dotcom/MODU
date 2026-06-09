@@ -215,7 +215,7 @@ tr:hover { background: #f1f7fd; }
       totalDiv.innerText = `TOTAL INGRESOS DEL PERÍODO: $ ${total.toLocaleString()}`;
   };
 
-  // Anulación conectada directo a Firebase
+  // Anulación conectada directo a Firebase (y corrigiendo mayúsculas en cuentas)
   window.anularFirebase = async (firebaseId, cuentaNombre, valor) => {
       if(!confirm("¿Seguro que deseas ANULAR este recibo permanentemente en la nube?")) return;
       
@@ -224,13 +224,15 @@ tr:hover { background: #f1f7fd; }
           const docRef = doc(db, "ingresos", firebaseId);
           await updateDoc(docRef, { estado: "ANULADO" });
           
-          // 2. Resta el saldo en la cuenta local (mientras migramos las cuentas a la nube)
+          // 2. Resta el saldo en la cuenta local convirtiendo a mayúsculas
           cuentasLocal = cuentasLocal.map(c => 
-              c.nombre === cuentaNombre ? { ...c, saldo: Number(c.saldo) - Number(valor) } : c
+              String(c.nombre).toUpperCase() === String(cuentaNombre).toUpperCase() 
+              ? { ...c, saldo: Number(c.saldo) - Number(valor) } : c
           );
           localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
           
-          // No hace falta llamar a pintar() porque onSnapshot detecta el cambio automáticamente
+          alert("Ingreso anulado. El dinero se descontó de la cuenta.");
+          
       } catch (error) {
           console.error("Error al anular:", error);
           alert("Hubo un error al anular el recibo en la nube.");

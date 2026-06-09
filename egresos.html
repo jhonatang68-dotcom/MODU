@@ -215,7 +215,7 @@ tr:hover { background: #fdfbfb; }
       totalDiv.innerHTML = `TOTAL EGRESOS DEL PERÍODO: <span>$ ${total.toLocaleString()}</span>`;
   };
 
-  // Anulación conectada directo a Firebase
+  // Anulación conectada directo a Firebase (y corrigiendo mayúsculas en cuentas)
   window.anularFirebase = async (firebaseId, cuentaNombre, valor) => {
       if(!confirm("¿Seguro que deseas ANULAR este egreso permanentemente en la nube?")) return;
       
@@ -224,13 +224,15 @@ tr:hover { background: #fdfbfb; }
           const docRef = doc(db, "egresos", firebaseId);
           await updateDoc(docRef, { estado: "ANULADO" });
           
-          // 2. Suma el dinero de vuelta a la cuenta local (mientras migramos las cuentas a la nube)
+          // 2. Suma el dinero de vuelta a la cuenta local convirtiendo a mayúsculas
           cuentasLocal = cuentasLocal.map(c => 
-              c.nombre === cuentaNombre ? { ...c, saldo: Number(c.saldo) + Number(valor) } : c
+              String(c.nombre).toUpperCase() === String(cuentaNombre).toUpperCase() 
+              ? { ...c, saldo: Number(c.saldo) + Number(valor) } : c
           );
           localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
           
-          // onSnapshot detectará el cambio automáticamente
+          alert("Egreso anulado. El dinero regresó a la cuenta.");
+          
       } catch (error) {
           console.error("Error al anular:", error);
           alert("Hubo un error al anular el egreso en la nube.");
