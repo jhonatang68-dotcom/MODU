@@ -130,8 +130,8 @@ tr:hover { background: #f1f7fd; }
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -147,21 +147,44 @@ tr:hover { background: #f1f7fd; }
 
   let ingresosMemoria = [];
   let cuentasLocal = JSON.parse(localStorage.getItem("cuentas")) || [];
-
-  // Conexión en tiempo real a Firebase
-  onSnapshot(collection(db, "ingresos"), (snapshot) => {
-    ingresosMemoria = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
-    window.pintar();
-  });
+  let chismosoActual = null; // Guardará la conexión activa para no duplicar lecturas
 
   const hoy = new Date();
   document.getElementById("selectorMes").value = hoy.getMonth() + 1;
   document.getElementById("selectorAnio").value = hoy.getFullYear();
 
+  // Función MAESTRA que va a la bodega SOLO por el mes que necesitas
+  window.cargarDatosMes = () => {
+      const mesSeleccionado = Number(document.getElementById("selectorMes").value);
+      const anioSeleccionado = Number(document.getElementById("selectorAnio").value);
+
+      // Si ya había un bodeguero trayendo datos, lo detenemos para no gastar cuota
+      if (chismosoActual) {
+          chismosoActual();
+      }
+
+      // Creamos las reglas del filtro directo en la base de datos
+      const q = query(
+          collection(db, "ingresos"),
+          where("mes", "==", mesSeleccionado),
+          where("anio", "==", anioSeleccionado)
+      );
+
+      // Enviamos al chismoso con las reglas
+      chismosoActual = onSnapshot(q, (snapshot) => {
+          ingresosMemoria = snapshot.docs.map(doc => ({ firebaseId: doc.id, ...doc.data() }));
+          window.pintar();
+      });
+  };
+
+  // Obligamos a los selectores a ir a la bodega cuando cambian
+  document.getElementById("selectorMes").onchange = window.cargarDatosMes;
+  document.getElementById("selectorAnio").onchange = window.cargarDatosMes;
+
   window.volverAlActual = () => {
       document.getElementById("selectorMes").value = hoy.getMonth() + 1;
       document.getElementById("selectorAnio").value = hoy.getFullYear();
-      window.pintar();
+      window.cargarDatosMes();
   };
 
   function formatearFecha(fecha) {
@@ -184,14 +207,14 @@ tr:hover { background: #f1f7fd; }
       const nombreMesElegido = document.querySelector(`#selectorMes option[value="${mesSeleccionado}"]`).text;
       document.getElementById("periodo").innerText = `Viendo: ${nombreMesElegido} ${anioSeleccionado}`;
 
+      // El filtro de Firebase ya trajo el mes correcto, aquí SOLO filtramos por lo que escribas en el buscador
       const filtrados = ingresosMemoria.filter(i => {
-          const coincideFecha = parseInt(i.mes) === mesSeleccionado && parseInt(i.anio) === anioSeleccionado;
           const coincideTexto = (i.recibo && i.recibo.toString().includes(buscador)) ||
                                 (i.cliente && i.cliente.toLowerCase().includes(buscador)) ||
                                 (i.descripcion && i.descripcion.toLowerCase().includes(buscador)) ||
                                 (i.cuenta && i.cuenta.toLowerCase().includes(buscador));
-          return coincideFecha && coincideTexto;
-      }).sort((a, b) => b.id - a.id); // Ordenados por número de recibo de mayor a menor
+          return coincideTexto;
+      }).sort((a, b) => b.id - a.id); 
 
       filtrados.forEach(i => {
           const esActivo = i.estado === "ACTIVO";
@@ -215,16 +238,13 @@ tr:hover { background: #f1f7fd; }
       totalDiv.innerText = `TOTAL INGRESOS DEL PERÍODO: $ ${total.toLocaleString()}`;
   };
 
-  // Anulación conectada directo a Firebase (y corrigiendo mayúsculas en cuentas)
+  // Anulación
   window.anularFirebase = async (firebaseId, cuentaNombre, valor) => {
       if(!confirm("¿Seguro que deseas ANULAR este recibo permanentemente en la nube?")) return;
-      
       try {
-          // 1. Actualiza el estado en Firebase
           const docRef = doc(db, "ingresos", firebaseId);
           await updateDoc(docRef, { estado: "ANULADO" });
           
-          // 2. Resta el saldo en la cuenta local convirtiendo a mayúsculas
           cuentasLocal = cuentasLocal.map(c => 
               String(c.nombre).toUpperCase() === String(cuentaNombre).toUpperCase() 
               ? { ...c, saldo: Number(c.saldo) - Number(valor) } : c
@@ -232,12 +252,14 @@ tr:hover { background: #f1f7fd; }
           localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
           
           alert("Ingreso anulado. El dinero se descontó de la cuenta.");
-          
       } catch (error) {
           console.error("Error al anular:", error);
           alert("Hubo un error al anular el recibo en la nube.");
       }
   };
+
+  // Al cargar la página por primera vez, vamos a la bodega por el mes actual
+  window.cargarDatosMes();
 
 </script>
 

@@ -2,380 +2,538 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>GRapp - Calculadora de Corte</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU · Calculadora de Corte</title>
 <style>
-body{
-    font-family:Arial,sans-serif;
-    background:#f4f6f8;
-    margin:0;
-}
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; color: #334155; display: flex; flex-direction: column; min-height: 100vh; }
+    
+    header { background: #111; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10;}
+    .left-header { display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+    .left-header:hover { color: #3498db; }
+    
+    .main-wrapper { display: flex; flex: 1; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; flex-wrap: wrap; }
+    
+    /* COLUMNA CONTROLES */
+    .col-controles { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 15px; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
+    
+    h3 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    label { display: block; font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-top: 12px; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 4px; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.2s; }
+    input:focus, select:focus { border-color: #3498db; background: #f8fafc; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    
+    .btn-add { background: #3498db; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; transition: 0.2s; }
+    .btn-add:hover { background: #2980b9; }
+    .btn-calc { background: #2ecc71; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: 900; font-size: 16px; width: 100%; transition: 0.2s; margin-top: 10px; box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2); }
+    .btn-calc:hover { background: #27ae60; transform: translateY(-2px); }
 
-header{
-    background:#111;
-    color:white;
-    padding:15px;
-    display:flex;
-    align-items:center;
-    gap:15px;
-}
+    /* LISTA DE PIEZAS */
+    .lista-piezas { margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+    .item-pieza { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; font-size: 13px; font-weight: bold; }
+    .item-pieza:last-child { border-bottom: none; }
+    .btn-del { color: #ef4444; background: none; border: none; cursor: pointer; font-weight: bold; font-size: 12px; padding: 5px; }
+    .btn-del:hover { background: #fee2e2; border-radius: 4px; }
 
-.home-icon{
-    width:22px;
-    height:22px;
-    fill:#f2f2f2;
-    cursor:pointer;
-}
+    /* COLUMNA VISUALIZACIÓN */
+    .col-canvas { flex: 2; min-width: 400px; display: flex; flex-direction: column; gap: 15px; }
+    .canvas-container { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; justify-content: center; align-items: center; overflow: auto; min-height: 400px; }
+    canvas { background: #f8fafc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    
+    /* RESULTADOS */
+    .resultados-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+    .res-card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #3498db; }
+    .res-card span { display: block; font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+    .res-card strong { display: block; font-size: 24px; color: #1e293b; margin-top: 5px; }
+    .res-success { border-left-color: #2ecc71; }
+    .res-warn { border-left-color: #f59e0b; }
 
-.container{
-    max-width:1200px;
-    margin:auto;
-    padding:20px;
-}
+    .leyenda { display: flex; gap: 15px; font-size: 12px; font-weight: bold; color: #475569; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+    .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: middle; border: 1px solid rgba(0,0,0,0.2); }
 
-.section{
-    background:white;
-    padding:15px;
-    border-radius:6px;
-    margin-bottom:15px;
-}
-
-input, select{
-    width:80px;
-    padding:5px;
-    margin:4px;
-}
-
-button{
-    padding:6px 12px;
-    border:none;
-    border-radius:5px;
-    background:#3498db;
-    color:white;
-    cursor:pointer;
-}
-
-.add-btn{ background:#2ecc71; }
-.remove-btn{ background:#e74c3c; }
-.export-btn{ background:#8e44ad; }
-
-.result-area{
-    display:flex;
-    gap:20px;
-    align-items:flex-start;
-}
-
-canvas{
-    border:1px solid #ccc;
-    background:#fff;
-}
-
-.resultados{
-    min-width:300px;
-    font-size:14px;
-}
+    @media (max-width: 768px) {
+        .main-wrapper { flex-direction: column; }
+        .col-controles, .col-canvas { min-width: 100%; }
+        .canvas-container { padding: 10px; }
+    }
 </style>
 </head>
-
 <body>
 
 <header>
-    <svg class="home-icon" onclick="location.href='index.html'"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24">
-        <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>
-    </svg>
-    <span>Calculadora de Corte</span>
+    <div class="left-header" onclick="location.href='index.html'">
+        <span>⬅ Volver al Menú</span>
+    </div>
+    <span style="font-weight: 900; color: #3498db; letter-spacing: -1px; font-size: 18px;">MODU</span>
 </header>
 
-<div class="container">
+<div class="main-wrapper">
+    <div class="col-controles">
+        
+        <div class="card">
+            <h3>1. Configuración de Material</h3>
+            <label>Modo de Trabajo</label>
+            <select id="modo" onchange="cambiarModo()">
+                <option value="pliego">Corte en Pliego (Láser/Litografía)</option>
+                <option value="rollo">Impresión en Rollo (Gran Formato)</option>
+            </select>
 
-<div class="section" style="display:flex; justify-content:center; align-items:flex-end; gap:60px; flex-wrap:wrap;">
+            <div class="grid-2">
+                <div><label>Ancho Material (cm)</label><input type="number" id="matW" value="100"></div>
+                <div id="cajaAlto"><label>Alto Pliego (cm)</label><input type="number" id="matH" value="70"></div>
+                <div><label>Demasía/Sangrado (cm)</label><input type="number" id="matGap" value="0"></div>
+            </div>
+        </div>
 
-    <div style="text-align:left;">
-        <strong>Tamaño de material:</strong><br><br>
+        <div class="card">
+            <h3>2. Agregar Piezas</h3>
+            <div class="grid-3">
+                <div><label>Ancho (cm)</label><input type="number" id="pW" placeholder="0"></div>
+                <div><label>Alto (cm)</label><input type="number" id="pH" placeholder="0"></div>
+                <div><label>Cant. (0=Llenar)</label><input type="number" id="pC" value="1"></div>
+            </div>
+            <button class="btn-add" onclick="agregarPieza()">+ Agregar Pieza</button>
+            
+            <div class="lista-piezas" id="listaPiezas">
+                <div style="padding: 15px; text-align: center; color: #94a3b8; font-size: 12px;">No hay piezas agregadas.</div>
+            </div>
 
-        <strong>Ancho:</strong>
-        <input id="materialAncho"> cm
+            <button class="btn-calc" onclick="calcularCorte()">CALCULAR DISTRIBUCIÓN</button>
+        </div>
 
-        <strong>X</strong>
-
-        <strong>Alto:</strong>
-        <input id="materialAlto"> cm
     </div>
 
-    <div style="text-align:left;">
-        <strong>Modo de cálculo:</strong><br><br>
-        <select id="modo">
-            <option value="pliego">Pliego</option>
-            <option value="rollo">Rollo</option>
-        </select>
+    <div class="col-canvas">
+        
+        <div class="resultados-box">
+            <div class="res-card">
+                <span>Total Piezas</span>
+                <strong id="resTotal">0</strong>
+            </div>
+            <div class="res-card res-success">
+                <span id="lblConsumo">Eficiencia / Uso</span>
+                <strong id="resConsumo">0%</strong>
+            </div>
+            <div class="res-card res-warn">
+                <span>Piezas Faltantes / Desperdicio</span>
+                <strong id="resFaltan" style="color: #ef4444;">0</strong>
+            </div>
+        </div>
+
+        <div class="canvas-container" id="contCanvas">
+            <canvas id="lienzo" width="800" height="400"></canvas>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center;">
+    <button onclick="exportarJPG()" style="background: #1e293b; color: white; padding: 12px 25px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;">
+        📥 Descargar plano (JPG)
+    </button>
+</div>
+
+
+        <div class="leyenda">
+            <div><span class="dot" style="background: #e0f2fe;"></span> Pieza Normal</div>
+            <div><span class="dot" style="background: #fef3c7;"></span> Pieza Rotada</div>
+            <div><span class="dot" style="background: #f8fafc;"></span> Desperdicio Útil</div>
+        </div>
+
     </div>
-
-</div>
-
-
-
-<div class="section">
-<strong>Cortes:</strong>
-<div id="listaCortes"></div>
-<button class="add-btn" onclick="agregarCorte()">+ Añadir Corte</button>
-</div>
-
-<button onclick="calcular()">Calcular</button>
-<button class="export-btn" onclick="exportarImagen()">Exportar</button>
-
-<div class="section result-area">
-<canvas id="canvas" width="650" height="500"></canvas>
-<div class="resultados" id="resultados"></div>
-</div>
-
 </div>
 
 <script>
+    let piezas = [];
+    const canvas = document.getElementById("lienzo");
+    const ctx = canvas.getContext("2d");
 
-// ================= UI =================
-
-function agregarCorte(){
-    const cont = document.getElementById("listaCortes");
-    const div = document.createElement("div");
-
-    div.innerHTML = `
-        <strong>Ancho:</strong>
-        <input class="cAncho"> cm
-        <strong>X</strong>
-        <strong>Alto:</strong>
-        <input class="cAlto"> cm
-        <strong>Cant:</strong>
-        <input class="cCant" value="0" style="width:50px">
-        <button class="remove-btn" onclick="this.parentElement.remove()">X</button>
-    `;
-    cont.appendChild(div);
-}
-
-// ================= EXPORTAR =================
-
-function exportarImagen(){
-    const canvas = document.getElementById("canvas");
-    const link = document.createElement("a");
-    link.download = "corte_grapp.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-}
-
-// ================= CALCULAR =================
-
-function calcular(){
-    const modo = document.getElementById("modo").value;
-    if(modo === "pliego") calcularPliego();
-    else calcularRollo();
-}
-
-// ================= PLIEGO =================
-
-function calcularPliego(){
-
-    const ancho = parseFloat(materialAncho.value) || 0;
-    const alto  = parseFloat(materialAlto.value) || 0;
-
-    if(!ancho || !alto){
-        alert("Ingresa ancho y alto para modo pliego.");
-        return;
-    }
-
-    const cortes = obtenerCortes();
-
-    if(cortes.length === 0){
-        alert("Ingresa al menos un corte.");
-        return;
-    }
-
-    const resultado = motorPliego(ancho, alto, cortes);
-
-    dibujarPliego(ancho, alto, resultado.colocadas);
-    mostrarResultadosPliego(ancho, alto, resultado);
-}
-
-// ================= MOTOR PLIEGO (VERSIÓN AGRESIVA 2.0) =================
-
-function motorPliego(pliegoAncho, pliegoAlto, cortes) {
-    const areaTotal = pliegoAncho * pliegoAlto;
-    
-    // 1. Clasificar piezas
-    let obligatorias = [];
-    let infinitas = [];
-
-    cortes.forEach((c, index) => {
-        if (c.cantidad > 0) {
-            for (let i = 0; i < c.cantidad; i++) {
-                obligatorias.push({ w: c.w, h: c.h, id: index });
-            }
+    function cambiarModo() {
+        const modo = document.getElementById("modo").value;
+        const cajaAlto = document.getElementById("cajaAlto");
+        const lblConsumo = document.getElementById("lblConsumo");
+        
+        if (modo === "pliego") {
+            cajaAlto.style.display = "block";
+            lblConsumo.innerText = "Eficiencia / Uso";
+            document.getElementById("matW").value = 100;
         } else {
-            infinitas.push({ w: c.w, h: c.h, id: index });
+            cajaAlto.style.display = "none";
+            lblConsumo.innerText = "Metros Lineales Requeridos";
+            document.getElementById("matW").value = 152; // Ancho estándar rollo
         }
-    });
-
-    if (obligatorias.length === 0 && infinitas.length === 0) return { colocadas: [], cantidad: 0, areaUsada: 0, desperdicio: areaTotal };
-
-    // 2. Generar variaciones de corte (La lógica "Agresiva")
-    let mejoresColocadas = [];
-
-    // Probamos dividir el pliego en diferentes puntos (X e Y)
-    // para mezclar orientaciones normales y rotadas
-    const piezasBase = obligatorias.length > 0 ? obligatorias[0] : infinitas[0];
-    
-    // Escenarios de división agresiva
-    const variantes = [
-        ...generarVariantesAgresivas(pliegoAncho, pliegoAlto, obligatorias, infinitas),
-        ...generarVariantesAgresivas(pliegoAlto, pliegoAncho, obligatorias, infinitas) // Pliego rotado
-    ];
-
-    variantes.forEach(colocadas => {
-        if (colocadas.length > mejoresColocadas.length) {
-            mejoresColocadas = colocadas;
-        }
-    });
-
-    return evaluarEscenario(mejoresColocadas, areaTotal);
-}
-
-function generarVariantesAgresivas(W, H, obligatorias, infinitas) {
-    let variantes = [];
-    const p = obligatorias.length > 0 ? obligatorias[0] : infinitas[0];
-
-    // Probamos divisiones en el eje X (Verticales)
-    for (let xDiv = 0; xDiv <= W; xDiv += Math.max(1, p.w / 2)) { 
-        variantes.push(llenarZonas(W, H, xDiv, true, [...obligatorias], infinitas));
+        
+        limpiarCanvas();
     }
 
-    // Probamos divisiones en el eje Y (Horizontales)
-    for (let yDiv = 0; yDiv <= H; yDiv += Math.max(1, p.h / 2)) {
-        variantes.push(llenarZonas(W, H, yDiv, false, [...obligatorias], infinitas));
+    function agregarPieza() {
+        const w = parseFloat(document.getElementById("pW").value);
+        const h = parseFloat(document.getElementById("pH").value);
+        const c = parseInt(document.getElementById("pC").value);
+
+        if (!w || !h || w <= 0 || h <= 0 || isNaN(c) || c < 0) {
+            alert("Medidas inválidas. Revisa los datos.");
+            return;
+        }
+
+        piezas.push({ id: Date.now(), w, h, c });
+        document.getElementById("pW").value = "";
+        document.getElementById("pH").value = "";
+        document.getElementById("pC").value = "1";
+        document.getElementById("pW").focus();
+        
+        renderLista();
     }
 
-    return variantes;
-}
+    function eliminarPieza(id) {
+        piezas = piezas.filter(p => p.id !== id);
+        renderLista();
+    }
 
-function llenarZonas(W, H, div, esVertical, obligatorias, infinitas) {
-    let colocadas = [];
-    
-    // Definimos dos zonas según la división
-    let zona1 = esVertical ? {w: div, h: H, x: 0, y: 0} : {w: W, h: div, x: 0, y: 0};
-    let zona2 = esVertical ? {w: W - div, h: H, x: div, y: 0} : {w: W, h: H - div, x: 0, y: div};
+    function renderLista() {
+        const lista = document.getElementById("listaPiezas");
+        lista.innerHTML = "";
+        
+        if (piezas.length === 0) {
+            lista.innerHTML = `<div style="padding: 15px; text-align: center; color: #94a3b8; font-size: 12px;">No hay piezas agregadas.</div>`;
+            return;
+        }
 
-    // Llenamos Zona 1 (Normal) y luego Zona 2 (Rotada)
-    colocadas = colocadas.concat(rellenarEspacio(zona1, obligatorias, infinitas, false));
-    colocadas = colocadas.concat(rellenarEspacio(zona2, obligatorias, infinitas, true));
+        piezas.forEach(p => {
+            const txtC = p.c === 0 ? "Relleno" : p.c + " und.";
+            lista.innerHTML += `
+                <div class="item-pieza">
+                    <span>${txtC} de ${p.w} x ${p.h} cm</span>
+                    <button class="btn-del" onclick="eliminarPieza(${p.id})">✖ Eliminar</button>
+                </div>
+            `;
+        });
+    }
 
-    return colocadas;
-}
+    function limpiarCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById("resTotal").innerText = "0";
+        document.getElementById("resConsumo").innerText = "0";
+        document.getElementById("resFaltan").innerText = "0";
+    }
 
-function rellenarEspacio(zona, obligatorias, infinitas, rotar) {
-    let v = [];
-    let y = 0;
-    
-    while (y < zona.h) {
-        let x = 0;
-        let alturaFila = 0;
-        while (x < zona.w) {
-            let p = null;
-            let esRotada = rotar;
+    // =========================================================
+    // 1. MOTOR ROLLO (El nuevo Bin Packing 2D)
+    // =========================================================
+    class Packer {
+        constructor(w, h) { this.root = { x: 0, y: 0, w: w, h: h }; }
+        fit(blocks) {
+            let n, node, block;
+            for (n = 0; n < blocks.length; n++) {
+                block = blocks[n];
+                if (node = this.findNode(this.root, block.w, block.h)) {
+                    block.fit = this.splitNode(node, block.w, block.h);
+                } else if (node = this.findNode(this.root, block.h, block.w)) {
+                    block.rotado = true;
+                    let temp = block.w; block.w = block.h; block.h = temp;
+                    block.fit = this.splitNode(node, block.w, block.h);
+                }
+            }
+        }
+        findNode(root, w, h) {
+            if (root.used) return this.findNode(root.right, w, h) || this.findNode(root.down, w, h);
+            else if ((w <= root.w) && (h <= root.h)) return root;
+            else return null;
+        }
+        splitNode(node, w, h) {
+            node.used = true;
+            if(node.w - w > node.h - h) { 
+                node.down  = { x: node.x,     y: node.y + h, w: w,          h: node.h - h };
+                node.right = { x: node.x + w, y: node.y,     w: node.w - w, h: node.h     };
+            } else {
+                node.down  = { x: node.x,     y: node.y + h, w: node.w,     h: node.h - h };
+                node.right = { x: node.x + w, y: node.y,     w: node.w - w, h: h          };
+            }
+            return node;
+        }
+    }
 
-            // Buscar obligatoria
-            let idx = obligatorias.findIndex(o => {
-                if (!rotar) return o.w <= (zona.w - x) && o.h <= (zona.h - y);
-                return o.h <= (zona.w - x) && o.w <= (zona.h - y);
+    // =========================================================
+    // 2. MOTOR PLIEGO (VERSIÓN AGRESIVA 2.0 ORIGINAL DE GRAPP)
+    // =========================================================
+    function motorPliego(pliegoAncho, pliegoAlto, cortes) {
+        const areaTotal = pliegoAncho * pliegoAlto;
+        
+        let obligatorias = [];
+        let infinitas = [];
+
+        cortes.forEach((c, index) => {
+            if (c.cantidad > 0) {
+                for (let i = 0; i < c.cantidad; i++) {
+                    // Guardar origW y origH para el dibujo
+                    obligatorias.push({ w: c.w, h: c.h, origW: c.origW, origH: c.origH, id: index });
+                }
+            } else {
+                infinitas.push({ w: c.w, h: c.h, origW: c.origW, origH: c.origH, id: index });
+            }
+        });
+
+        if (obligatorias.length === 0 && infinitas.length === 0) return { colocadas: [], cantidad: 0, areaUsada: 0, desperdicio: areaTotal };
+
+        // Variantes probando el pliego normal y el pliego rotado
+        let variantes = [
+            { cols: generarVariantesAgresivas(pliegoAncho, pliegoAlto, obligatorias, infinitas), pliegoRotado: false },
+            { cols: generarVariantesAgresivas(pliegoAlto, pliegoAncho, obligatorias, infinitas), pliegoRotado: true } 
+        ];
+
+        let mejoresColocadas = [];
+        let sheetFueRotada = false;
+
+        variantes.forEach(vr => {
+            vr.cols.forEach(colocadas => {
+                if (colocadas.length > mejoresColocadas.length) {
+                    mejoresColocadas = colocadas;
+                    sheetFueRotada = vr.pliegoRotado;
+                }
+            });
+        });
+
+        // Si el mejor escenario fue asumiendo que metíamos la hoja rotada a la máquina,
+        // revertimos las coordenadas (X, Y) para que se dibuje en el canvas normal.
+        if (sheetFueRotada) {
+            mejoresColocadas = mejoresColocadas.map(p => {
+                return { x: p.y, y: p.x, w: p.h, h: p.w, realW: p.realW, realH: p.realH, rotado: !p.rotado };
+            });
+        }
+
+        let areaUsada = 0;
+        mejoresColocadas.forEach(p => areaUsada += p.w * p.h);
+        
+        return {
+            colocadas: mejoresColocadas,
+            cantidad: mejoresColocadas.length,
+            areaUsada: areaUsada,
+            desperdicio: areaTotal - areaUsada
+        };
+    }
+
+    function generarVariantesAgresivas(W, H, obligatorias, infinitas) {
+        let variantes = [];
+        const p = obligatorias.length > 0 ? obligatorias[0] : infinitas[0];
+
+        // Probamos divisiones en el eje X (Verticales)
+        for (let xDiv = 0; xDiv <= W; xDiv += Math.max(1, p.w / 2)) { 
+            variantes.push(llenarZonas(W, H, xDiv, true, [...obligatorias], infinitas));
+        }
+
+        // Probamos divisiones en el eje Y (Horizontales)
+        for (let yDiv = 0; yDiv <= H; yDiv += Math.max(1, p.h / 2)) {
+            variantes.push(llenarZonas(W, H, yDiv, false, [...obligatorias], infinitas));
+        }
+
+        return variantes;
+    }
+
+    function llenarZonas(W, H, div, esVertical, obligatorias, infinitas) {
+        let colocadas = [];
+        let zona1 = esVertical ? {w: div, h: H, x: 0, y: 0} : {w: W, h: div, x: 0, y: 0};
+        let zona2 = esVertical ? {w: W - div, h: H, x: div, y: 0} : {w: W, h: H - div, x: 0, y: div};
+
+        colocadas = colocadas.concat(rellenarEspacio(zona1, obligatorias, infinitas, false));
+        colocadas = colocadas.concat(rellenarEspacio(zona2, obligatorias, infinitas, true));
+        return colocadas;
+    }
+
+    function rellenarEspacio(zona, obligatorias, infinitas, rotar) {
+        let v = [];
+        let y = 0;
+        
+        while (y < zona.h) {
+            let x = 0;
+            let alturaFila = 0;
+            while (x < zona.w) {
+                let p = null;
+
+                let idx = obligatorias.findIndex(o => {
+                    if (!rotar) return o.w <= (zona.w - x) && o.h <= (zona.h - y);
+                    return o.h <= (zona.w - x) && o.w <= (zona.h - y);
+                });
+
+                if (idx !== -1) {
+                    p = obligatorias.splice(idx, 1)[0];
+                } else if (infinitas.length > 0) {
+                    // Verificar si la infinita cabe
+                    let inF = infinitas[0];
+                    let cabeInf = (!rotar) ? (inF.w <= (zona.w - x) && inF.h <= (zona.h - y)) : (inF.h <= (zona.w - x) && inF.w <= (zona.h - y));
+                    if(cabeInf) p = inF;
+                }
+
+                if (p) {
+                    let finalW = rotar ? p.h : p.w;
+                    let finalH = rotar ? p.w : p.h;
+                    
+                    if (x + finalW <= zona.w && y + finalH <= zona.h) {
+                        // Empaquetar con estructura compatible para el dibujo MODU
+                        v.push({
+                            x: zona.x + x, 
+                            y: zona.y + y, 
+                            w: finalW, 
+                            h: finalH,
+                            realW: p.origW, // Conservar medidas originales para el texto
+                            realH: p.origH,
+                            rotado: rotar
+                        });
+                        x += finalW;
+                        alturaFila = Math.max(alturaFila, finalH);
+                    } else break;
+                } else break;
+            }
+            if (alturaFila === 0) break;
+            y += alturaFila;
+        }
+        return v;
+    }
+
+    // =========================================================
+    // 3. ORQUESTADOR PRINCIPAL
+    // =========================================================
+    function calcularCorte() {
+        if (piezas.length === 0) return alert("Agrega piezas para calcular.");
+
+        const modo = document.getElementById("modo").value;
+        const matW = parseFloat(document.getElementById("matW").value);
+        const gap = parseFloat(document.getElementById("matGap").value) || 0;
+
+        if (!matW || matW <= 0) return alert("Ancho de material inválido.");
+
+        let bloquesFinales = [];
+        let matHCalculado = 0;
+
+        if (modo === "rollo") {
+            // LÓGICA ROLLO (Packer Infinito)
+            let bloquesParaEmpaquetar = [];
+            piezas.forEach(p => {
+                let qty = p.c > 0 ? p.c : 1000; // En rollo limitamos el relleno infinito a 1000 para no crashear
+                for (let i = 0; i < qty; i++) {
+                    bloquesParaEmpaquetar.push({ w: p.w + gap, h: p.h + gap, realW: p.w, realH: p.h, rotado: false });
+                }
             });
 
-            if (idx !== -1) {
-                p = obligatorias.splice(idx, 1)[0];
-            } else if (infinitas.length > 0) {
-                p = infinitas[0];
-            }
+            bloquesParaEmpaquetar.sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h));
+            
+            const packer = new Packer(matW, 10000); // 100 metros virtuales
+            packer.fit(bloquesParaEmpaquetar);
 
-            if (p) {
-                let finalW = rotar ? p.h : p.w;
-                let finalH = rotar ? p.w : p.h;
-                
-                if (x + finalW <= zona.w && y + finalH <= zona.h) {
-                    v.push({x: zona.x + x, y: zona.y + y, w: finalW, h: finalH});
-                    x += finalW;
-                    alturaFila = Math.max(alturaFila, finalH);
-                } else break;
-            } else break;
+            let maxY = 0;
+            let acomodadas = 0;
+            let faltan = 0;
+
+            bloquesParaEmpaquetar.forEach(b => {
+                if (b.fit) {
+                    acomodadas++;
+                    if (b.fit.y + b.h > maxY) maxY = b.fit.y + b.h;
+                    bloquesFinales.push({
+                        x: b.fit.x, y: b.fit.y, w: b.w, h: b.h, realW: b.realW, realH: b.realH, rotado: b.rotado
+                    });
+                } else { faltan++; }
+            });
+
+            matHCalculado = maxY;
+            
+            document.getElementById("resTotal").innerText = acomodadas;
+            document.getElementById("resFaltan").innerText = faltan;
+            document.getElementById("resConsumo").innerText = `${maxY} cm (${(maxY/100).toFixed(2)} mts)`;
+
+        } else {
+            // LÓGICA PLIEGO (Tu ecuación Agresiva 2.0)
+            const matH = parseFloat(document.getElementById("matH").value);
+            if (!matH || matH <= 0) return alert("Alto de material inválido.");
+            matHCalculado = matH;
+
+            // Formatear piezas para inyectarlas al motor Pliego original
+            let cortesFormateados = piezas.map(p => ({
+                w: p.w + gap, h: p.h + gap, origW: p.w, origH: p.h, cantidad: p.c
+            }));
+
+            const res = motorPliego(matW, matH, cortesFormateados);
+            bloquesFinales = res.colocadas;
+
+            // Calcular Faltantes si no era infinito
+            let totalSolicitadas = 0;
+            piezas.forEach(p => totalSolicitadas += p.c);
+            let faltan = (totalSolicitadas > 0 && totalSolicitadas > res.cantidad) ? (totalSolicitadas - res.cantidad) : 0;
+            
+            // Si el operario puso cantidad "0" (infinito), no tiene sentido mostrar piezas faltantes
+            if(piezas.some(p => p.c === 0)) faltan = "Relleno Automático";
+
+            document.getElementById("resTotal").innerText = res.cantidad;
+            document.getElementById("resFaltan").innerText = faltan;
+            document.getElementById("resConsumo").innerText = `${((res.areaUsada / (matW * matH)) * 100).toFixed(1)}%`;
+            document.getElementById("resFaltan").style.color = typeof faltan === "string" ? "#64748b" : (faltan > 0 ? "#ef4444" : "#1e293b");
         }
-        if (alturaFila === 0) break;
-        y += alturaFila;
+
+        dibujarPlano(bloquesFinales, matW, matHCalculado, gap);
     }
-    return v;
-}
 
-function evaluarEscenario(colocadas, areaTotal) {
-    let areaUsada = 0;
-    colocadas.forEach(p => areaUsada += p.w * p.h);
-    return {
-        colocadas,
-        cantidad: colocadas.length,
-        areaUsada,
-        desperdicio: areaTotal - areaUsada
-    };
-}
-// ================= UTIL =================
+    // =========================================================
+    // 4. MOTOR DE DIBUJO MODU
+    // =========================================================
+    function dibujarPlano(bloques, matW, matH, gap) {
+        const contenedor = document.getElementById("contCanvas");
+        
+        const prop = matH / matW;
+        let cWidth = contenedor.clientWidth - 40; 
+        let cHeight = cWidth * prop;
 
-function obtenerCortes(){
-    let cortes = [];
-    document.querySelectorAll("#listaCortes > div").forEach(div=>{
-        const w = parseFloat(div.querySelector(".cAncho").value)||0;
-        const h = parseFloat(div.querySelector(".cAlto").value)||0;
-        const cantidad = parseInt(div.querySelector(".cCant").value)||0;
-        if(w && h) cortes.push({w,h,cantidad});
-    });
-    return cortes;
-}
+        if(cHeight > 800) {
+            cHeight = 800;
+            cWidth = cHeight / prop;
+        }
 
-// ================= DIBUJO =================
+        canvas.width = cWidth;
+        canvas.height = cHeight;
 
-function dibujarPliego(ancho, alto, piezas){
+        const scaleX = canvas.width / matW;
+        const scaleY = canvas.height / matH;
 
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
-    const scale = Math.min(canvas.width/ancho, canvas.height/alto);
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
-    ctx.fillStyle="#f8d7da";
-    ctx.fillRect(0,0,ancho*scale,alto*scale);
-    ctx.strokeRect(0,0,ancho*scale,alto*scale);
+        bloques.forEach(b => {
+            const x = b.x * scaleX;
+            const y = b.y * scaleY;
+            
+            // Dibujar corte real (descontando la demasía del sangrado)
+            const rW = (b.w - gap) * scaleX;
+            const rH = (b.h - gap) * scaleY;
+            const rX = x + (gap / 2) * scaleX;
+            const rY = y + (gap / 2) * scaleY;
 
-    piezas.forEach(p=>{
-        ctx.fillStyle="#87CEEB";
-        ctx.fillRect(p.x*scale,p.y*scale,p.w*scale,p.h*scale);
-        ctx.strokeStyle="#1f4e79";
-        ctx.strokeRect(p.x*scale,p.y*scale,p.w*scale,p.h*scale);
-    });
-}
+            ctx.fillStyle = b.rotado ? "#fef3c7" : "#e0f2fe"; 
+            ctx.fillRect(rX, rY, rW, rH);
+            
+            ctx.strokeStyle = b.rotado ? "#d97706" : "#0284c7";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(rX, rY, rW, rH);
 
-function mostrarResultadosPliego(ancho, alto, r){
-    const horiz = r.colocadas.filter(p => p.w > p.h).length; // Asumiendo que W > H es horizontal
-    const vert = r.colocadas.filter(p => p.w <= p.h).length;
-
-    resultados.innerHTML = `
-        <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; background: #fff;">
-            <strong style="font-size: 18px; color: #2c3e50;">Total piezas: ${r.cantidad}</strong><br><hr>
-            <strong>Horizontales:</strong> ${horiz}<br>
-            <strong>Verticales:</strong> ${vert}<br><br>
-            <strong>Eficiencia:</strong> <span style="color: green;">${((r.areaUsada/(ancho*alto))*100).toFixed(2)}%</span><br>
-            <strong>Desperdicio:</strong> <span style="color: red;">${r.desperdicio.toFixed(2)} cm²</span>
-        </div>
-    `;
-}
-
-// ================= ROLLO (placeholder) =================
-
-function calcularRollo(){
-    resultados.innerHTML = "<strong>Motor de rollo en construcción...</strong>";
-}
-
+            if (rW > 40 && rH > 20) {
+                ctx.fillStyle = "#1e293b";
+                const med = b.rotado ? `${b.realH}x${b.realW}` : `${b.realW}x${b.realH}`;
+                ctx.fillText(med, rX + rW/2, rY + rH/2);
+            }
+        });
+    }
+// --- NUEVA FUNCIÓN: EXPORTAR JPG ---
+    function exportarJPG() {
+        const link = document.createElement('a');
+        // Convertimos el contenido del canvas a formato DataURL (JPG)
+        link.download = `corte_modu_${new Date().toLocaleDateString().replace(/\//g, '_')}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg", 1.0); // 1.0 es la máxima calidad
+        link.click();
+    }
+    cambiarModo();
 </script>
 
 </body>
