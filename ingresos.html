@@ -131,7 +131,7 @@ tr:hover { background: #f1f7fd; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -242,16 +242,31 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
   window.anularFirebase = async (firebaseId, cuentaNombre, valor) => {
       if(!confirm("¿Seguro que deseas ANULAR este recibo permanentemente en la nube?")) return;
       try {
+          // 1. Marca el ingreso como ANULADO
           const docRef = doc(db, "ingresos", firebaseId);
           await updateDoc(docRef, { estado: "ANULADO" });
           
-          cuentasLocal = cuentasLocal.map(c => 
-              String(c.nombre).toUpperCase() === String(cuentaNombre).toUpperCase() 
-              ? { ...c, saldo: Number(c.saldo) - Number(valor) } : c
-          );
-          localStorage.setItem("cuentas", JSON.stringify(cuentasLocal));
+          // 2. Va a la bodega a buscar las cuentas
+          const cuentasSnapshot = await getDocs(collection(db, "cuentas"));
+          let cuentaEncontrada = null;
           
-          alert("Ingreso anulado. El dinero se descontó de la cuenta.");
+          // 3. Busca la cuenta ignorando mayúsculas/minúsculas
+          cuentasSnapshot.forEach(cDoc => {
+              const data = cDoc.data();
+              if (String(data.nombre).toUpperCase() === String(cuentaNombre).toUpperCase()) {
+                  cuentaEncontrada = { id: cDoc.id, ...data };
+              }
+          });
+          
+          // 4. Actualiza el saldo directo en Firebase
+          if (cuentaEncontrada) {
+              const nuevoSaldo = Number(cuentaEncontrada.saldo) - Number(valor);
+              await updateDoc(doc(db, "cuentas", cuentaEncontrada.id), { saldo: nuevoSaldo });
+              alert("Ingreso anulado. El dinero se descontó de la cuenta en la nube.");
+          } else {
+              alert("Ingreso anulado, pero no se encontró la cuenta en la nube para descontar el dinero.");
+          }
+          
       } catch (error) {
           console.error("Error al anular:", error);
           alert("Hubo un error al anular el recibo en la nube.");
