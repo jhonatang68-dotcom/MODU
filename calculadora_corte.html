@@ -143,6 +143,13 @@
 </div>
 
 <script>
+// --- EL CELADOR DEL EDIFICIO ---
+  const empresaActiva = localStorage.getItem("empresaActiva");
+  if (!empresaActiva) {
+      window.location.href = "login.html";
+  }
+  // -------------------------------
+
     let piezas = [];
     const canvas = document.getElementById("lienzo");
     const ctx = canvas.getContext("2d");

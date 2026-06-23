@@ -174,6 +174,13 @@ td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 14px; font
 </div>
 
 <script type="module">
+// --- EL CELADOR DEL EDIFICIO ---
+  const empresaActiva = localStorage.getItem("empresaActiva");
+  if (!empresaActiva) {
+      window.location.href = "login.html";
+  }
+  // -------------------------------
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 

@@ -162,6 +162,13 @@
 </div>
 
 <script type="module">
+// --- EL CELADOR DEL EDIFICIO ---
+  const empresaActiva = localStorage.getItem("empresaActiva");
+  if (!empresaActiva) {
+      window.location.href = "login.html";
+  }
+  // -------------------------------
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 

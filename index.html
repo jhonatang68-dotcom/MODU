@@ -124,6 +124,13 @@
     </div>
 
     <script>
+// --- EL CELADOR DEL EDIFICIO ---
+  const empresaActiva = localStorage.getItem("empresaActiva");
+  if (!empresaActiva) {
+      window.location.href = "login.html";
+  }
+  // -------------------------------
+
         // Fecha dinámica
         function actualizarFecha() {
             const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };

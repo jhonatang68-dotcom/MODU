@@ -158,6 +158,13 @@
 </div>
 
 <script>
+// --- EL CELADOR DEL EDIFICIO ---
+  const empresaActiva = localStorage.getItem("empresaActiva");
+  if (!empresaActiva) {
+      window.location.href = "login.html";
+  }
+  // -------------------------------
+
     function cerrarFrame() {
         if(window.parent && window.parent.cerrarModal) {
             window.parent.cerrarModal();
