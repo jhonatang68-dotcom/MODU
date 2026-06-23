@@ -85,7 +85,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 </div>
 
 <script type="module">
-   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -115,7 +115,6 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
   async function cargarDatosIniciales() {
       try {
-          // 🚀 Consulta al cuaderno de notas de Egresos (1 sola lectura)
           const contadorRef = doc(db, "contadores", "egresos");
           const contadorSnap = await getDoc(contadorRef);
           
@@ -124,14 +123,14 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
           } else {
               proximoComprobante = 1;
           }
-          // CABLE 1 ARREGLADO
           document.getElementById("numeroComprobante").innerText = "Comprobante No. " + proximoComprobante;
 
           const clientesSnap = await getDocs(collection(db, "clientes"));
           proveedoresNube = clientesSnap.docs.map(doc => doc.data());
           
-          // CABLE 2 ARREGLADO
+          // AQUÍ ESTÁ EL FILTRO CORREGIDO QUE SÓLO DEJA PASAR PROVEEDORES
           document.getElementById("listaProveedores").innerHTML = proveedoresNube
+              .filter(p => p.tipo && p.tipo.toLowerCase() === "proveedor")
               .map(p => `<option value="${p.nombre}">`).join("");
 
           const cuentasSnap = await getDocs(collection(db, "cuentas"));
@@ -141,7 +140,6 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
       } catch (error) {
           console.error("Error cargando datos:", error);
-          // CABLE 3 ARREGLADO
           document.getElementById("numeroComprobante").innerText = "Error de conexión";
       }
   }
@@ -149,8 +147,6 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
   window.ejecutarGuardado = async (generarPDF) => {
       const btnGuardar = document.getElementById("btnGuardar");
       const btnPdf = document.getElementById("btnPdf");
-      
-      // CABLE 4 ARREGLADO
       const proveedorInput = document.getElementById("proveedorInput"); 
       const descripcion = document.getElementById("descripcion");
       const cuentaSelect = document.getElementById("cuenta");
@@ -160,7 +156,19 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
       document.querySelectorAll(".error").forEach(e=>e.classList.remove("error"));
 
       if(!fechaInput.value){ fechaInput.classList.add("error"); ok=false; }
-      if(!proveedorInput.value){ proveedorInput.classList.add("error"); ok=false; }
+      
+      // VALIDACIÓN ESTRICTA: Que exista y que además sea proveedor
+      const proveedorValido = proveedoresNube.some(p => 
+          p.nombre.toUpperCase() === proveedorInput.value.trim().toUpperCase() && 
+          p.tipo && p.tipo.toLowerCase() === "proveedor"
+      );
+      
+      if(!proveedorInput.value || !proveedorValido){ 
+          proveedorInput.classList.add("error"); 
+          if(proveedorInput.value && !proveedorValido) alert("Ese proveedor no existe o no tiene la etiqueta 'proveedor' en tu base de datos.");
+          ok=false; 
+      }
+
       if(!descripcion.value.trim()){ descripcion.classList.add("error"); ok=false; }
       if(!cuentaSelect.value){ cuentaSelect.classList.add("error"); ok=false; }
       if(!valorInput.value){ valorInput.classList.add("error"); ok=false; }
@@ -177,7 +185,6 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
       const cuentaSeleccionada = cuentasNube.find(c => c.id === cuentaId);
       const nombreCuenta = cuentaSeleccionada.nombre;
       
-      // RESTA el saldo porque es un egreso
       const nuevoSaldo = Number(cuentaSeleccionada.saldo) - valorFinal;
 
       const partesFecha = fechaInput.value.split("-");
@@ -199,7 +206,6 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
           await addDoc(collection(db, "egresos"), dataEgreso);
           await updateDoc(doc(db, "cuentas", cuentaId), { saldo: nuevoSaldo });
           
-          // 🚀 Incrementa el contador de egresos
           const contadorRef = doc(db, "contadores", "egresos");
           await updateDoc(contadorRef, { ultimo_comprobante: increment(1) });
 
@@ -215,7 +221,6 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
   };
 
   cargarDatosIniciales();
-
 </script>
 
 </body>
