@@ -86,7 +86,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -115,8 +115,15 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
   async function cargarDatosIniciales() {
       try {
-          const ingresosSnap = await getDocs(collection(db, "ingresos"));
-          proximoRecibo = ingresosSnap.size + 1;
+          // 🚀 Consulta al cuaderno de notas de Ingresos (1 sola lectura)
+          const contadorRef = doc(db, "contadores", "ingresos");
+          const contadorSnap = await getDoc(contadorRef);
+          
+          if (contadorSnap.exists()) {
+              proximoRecibo = Number(contadorSnap.data().ultimo_recibo) + 1;
+          } else {
+              proximoRecibo = 1;
+          }
           document.getElementById("numeroRecibo").innerText = "Recibo No. " + proximoRecibo;
 
           const clientesSnap = await getDocs(collection(db, "clientes"));
@@ -153,7 +160,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
       const clienteValido = clientesNube.some(c => c.nombre.toUpperCase() === clienteInput.value.trim().toUpperCase());
       if(!clienteInput.value || !clienteValido){ 
           clienteInput.classList.add("error"); 
-          if(clienteInput.value && !clienteValido) alert("Ese cliente no existe en tu base de datos.");
+          if(clienteInput.value && !clienteValido) alert("Ese cliente/tercero no existe en tu base de datos.");
           ok=false; 
       }
 
@@ -169,10 +176,11 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
       btnGuardar.disabled = true; btnGuardar.innerText = "Guardando...";
       btnPdf.disabled = true; btnPdf.innerText = "Guardando...";
 
-      // Lógica matemática para la cuenta
       const cuentaId = cuentaSelect.value;
       const cuentaSeleccionada = cuentasNube.find(c => c.id === cuentaId);
       const nombreCuenta = cuentaSeleccionada.nombre;
+      
+      // SUMA el saldo porque es un ingreso
       const nuevoSaldo = Number(cuentaSeleccionada.saldo) + valorFinal;
 
       const partesFecha = fechaInput.value.split("-");
@@ -184,7 +192,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
           mes: parseInt(partesFecha[1]),
           anio: parseInt(partesFecha[0]),
           descripcion: descripcion.value.trim().toUpperCase(),
-          cuenta: nombreCuenta, // Guardamos el nombre para que el historial se vea bien
+          cuenta: nombreCuenta,
           valor: valorFinal,
           op: op.value.trim().toUpperCase() || "",
           estado: "ACTIVO",
@@ -193,7 +201,11 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
       try {
           await addDoc(collection(db, "ingresos"), dataIngreso);
-          await updateDoc(doc(db, "cuentas", cuentaId), { saldo: nuevoSaldo }); // Actualiza saldo en Firebase
+          await updateDoc(doc(db, "cuentas", cuentaId), { saldo: nuevoSaldo });
+          
+          // 🚀 Incrementa el contador de ingresos
+          const contadorRef = doc(db, "contadores", "ingresos");
+          await updateDoc(contadorRef, { ultimo_recibo: increment(1) });
 
           if(generarPDF) alert("MODU: Simulando generación de comprobante PDF...");
           window.location.href = "ingresos.html";

@@ -86,7 +86,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
@@ -109,22 +109,28 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
     valorInput.value = limpio.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   });
 
-  let proximoEgreso = 1;
+  let proximoComprobante = 1;
   let proveedoresNube = [];
   let cuentasNube = [];
 
   async function cargarDatosIniciales() {
       try {
-          const egresosSnap = await getDocs(collection(db, "egresos"));
-          proximoEgreso = egresosSnap.size + 1;
-          document.getElementById("numeroComprobante").innerText = "Comprobante No. " + proximoEgreso;
+          // 🚀 Consulta al cuaderno de notas de Egresos (1 sola lectura)
+          const contadorRef = doc(db, "contadores", "egresos");
+          const contadorSnap = await getDoc(contadorRef);
+          
+          if (contadorSnap.exists()) {
+              proximoComprobante = Number(contadorSnap.data().ultimo_comprobante) + 1;
+          } else {
+              proximoComprobante = 1;
+          }
+          document.getElementById("numeroRecibo").innerText = "Comprobante No. " + proximoComprobante;
 
           const clientesSnap = await getDocs(collection(db, "clientes"));
-          proveedoresNube = clientesSnap.docs
-              .map(doc => doc.data())
-              .filter(c => c.tipo && c.tipo.toLowerCase() === "proveedor");
-          document.getElementById("listaProveedores").innerHTML = proveedoresNube
-              .map(c => `<option value="${c.nombre}">`).join("");
+          proveedoresNube = clientesSnap.docs.map(doc => doc.data());
+          
+          document.getElementById("listaClientes").innerHTML = proveedoresNube
+              .map(p => `<option value="${p.nombre}">`).join("");
 
           const cuentasSnap = await getDocs(collection(db, "cuentas"));
           cuentasNube = cuentasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -133,31 +139,23 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
       } catch (error) {
           console.error("Error cargando datos:", error);
-          document.getElementById("numeroComprobante").innerText = "Error de conexión";
+          document.getElementById("numeroRecibo").innerText = "Error de conexión";
       }
   }
 
   window.ejecutarGuardado = async (generarPDF) => {
       const btnGuardar = document.getElementById("btnGuardar");
       const btnPdf = document.getElementById("btnPdf");
-      const proveedorInput = document.getElementById("proveedorInput");
+      const proveedorInput = document.getElementById("clienteInput"); 
       const descripcion = document.getElementById("descripcion");
       const cuentaSelect = document.getElementById("cuenta");
-      const op = document.getElementById("op");
       const fechaInput = document.getElementById("fechaManual");
 
       let ok = true;
       document.querySelectorAll(".error").forEach(e=>e.classList.remove("error"));
 
       if(!fechaInput.value){ fechaInput.classList.add("error"); ok=false; }
-      
-      const provExiste = proveedoresNube.some(c => c.nombre.toUpperCase() === proveedorInput.value.trim().toUpperCase());
-      if(!proveedorInput.value || !provExiste){ 
-          proveedorInput.classList.add("error"); 
-          if(proveedorInput.value && !provExiste) alert("Ese proveedor no existe en tu base de datos.");
-          ok=false; 
-      }
-
+      if(!proveedorInput.value){ proveedorInput.classList.add("error"); ok=false; }
       if(!descripcion.value.trim()){ descripcion.classList.add("error"); ok=false; }
       if(!cuentaSelect.value){ cuentaSelect.classList.add("error"); ok=false; }
       if(!valorInput.value){ valorInput.classList.add("error"); ok=false; }
@@ -170,33 +168,37 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
       btnGuardar.disabled = true; btnGuardar.innerText = "Guardando...";
       btnPdf.disabled = true; btnPdf.innerText = "Guardando...";
 
-      // Lógica matemática para la cuenta
       const cuentaId = cuentaSelect.value;
       const cuentaSeleccionada = cuentasNube.find(c => c.id === cuentaId);
       const nombreCuenta = cuentaSeleccionada.nombre;
+      
+      // RESTA el saldo porque es un egreso
       const nuevoSaldo = Number(cuentaSeleccionada.saldo) - valorFinal;
 
       const partesFecha = fechaInput.value.split("-");
       const dataEgreso = {
-          id: Date.now(), 
-          comprobante: proximoEgreso,
+          id: Date.now(),
+          comprobante: proximoComprobante,
           proveedor: proveedorInput.value.trim().toUpperCase(),
           fecha: fechaInput.value,
           mes: parseInt(partesFecha[1]),
           anio: parseInt(partesFecha[0]),
           descripcion: descripcion.value.trim().toUpperCase(),
-          cuenta: nombreCuenta, // Guardamos el nombre
+          cuenta: nombreCuenta,
           valor: valorFinal,
-          op: op.value.trim().toUpperCase() || "",
           estado: "ACTIVO",
           timestamp: new Date().toISOString()
       };
 
       try {
           await addDoc(collection(db, "egresos"), dataEgreso);
-          await updateDoc(doc(db, "cuentas", cuentaId), { saldo: nuevoSaldo }); // Resta saldo en Firebase
+          await updateDoc(doc(db, "cuentas", cuentaId), { saldo: nuevoSaldo });
+          
+          // 🚀 Incrementa el contador de egresos
+          const contadorRef = doc(db, "contadores", "egresos");
+          await updateDoc(contadorRef, { ultimo_comprobante: increment(1) });
 
-          if(generarPDF) alert("MODU: Simulando generación de Egreso PDF...");
+          if(generarPDF) alert("MODU: Simulando generación de comprobante PDF...");
           window.location.href = "egresos.html";
 
       } catch (error) {
