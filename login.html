@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODU - Iniciar Sesión</title>
+<style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #334155; }
+    
+    .login-box { background: #fff; padding: 40px 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 350px; text-align: center; }
+    
+    .logo { font-size: 32px; font-weight: 900; color: #3498db; letter-spacing: -1px; margin-bottom: 5px; }
+    .subtitle { font-size: 14px; color: #7f8c8d; margin-bottom: 30px; }
+    
+    .input-group { text-align: left; margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 13px; color: #34495e; text-transform: uppercase; }
+    input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #dce4ec; border-radius: 6px; font-size: 15px; transition: 0.3s; }
+    input:focus { outline: none; border-color: #3498db; background-color: #f0f7ff; }
+    
+    button { width: 100%; padding: 14px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+    button:hover { background: #2980b9; }
+    button:disabled { background: #95a5a6; cursor: not-allowed; }
+    
+    .error-msg { color: #e74c3c; font-size: 13px; margin-top: 15px; display: none; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="login-box">
+    <div class="logo">MODU</div>
+    <div class="subtitle">Gestión inteligente para tu taller</div>
+    
+    <div class="input-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email">
+    </div>
+    
+    <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" id="password" placeholder="••••••••">
+    </div>
+    
+    <button id="btnLogin" onclick="iniciarSesion()">Ingresar</button>
+    <div id="errorMsg" class="error-msg">Correo o contraseña incorrectos.</div>
+</div>
+
+<script type="module">
+    // 1. Importamos la base de datos y el nuevo módulo de Autenticación
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1BFZ8DZqLx_iimasn9CHgYPKTBhfNfb0",
+        authDomain: "modu-6b2b5.firebaseapp.com",
+        projectId: "modu-6b2b5",
+        storageBucket: "modu-6b2b5.firebasestorage.app",
+        messagingSenderId: "139925953689",
+        appId: "1:139925953689:web:6f55990a882e4d652bac08"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // 2. Nuestro "Traductor" de UIDs a Nombres de Empresa
+    const directorioEmpresas = {
+        "72Od9hEaPjdMDIBjgGxYVhWoBwQ2": "grafik",
+        "7rN4b39C6dMN7VBFmGGzvl0H5tm1": "grafik_design"
+    };
+
+    window.iniciarSesion = async () => {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const btnLogin = document.getElementById("btnLogin");
+        const errorMsg = document.getElementById("errorMsg");
+
+        if (!email || !password) {
+            errorMsg.innerText = "Por favor llena todos los campos.";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        btnLogin.disabled = true;
+        btnLogin.innerText = "Verificando...";
+        errorMsg.style.display = "none";
+
+        try {
+            // 3. Firebase valida las credenciales
+            const credenciales = await signInWithEmailAndPassword(auth, email, password);
+            const usuario = credenciales.user;
+
+            // 4. Verificamos a qué empresa pertenece ese UID
+            const idEmpresa = directorioEmpresas[usuario.uid];
+
+            if (idEmpresa) {
+                // 5. ¡Éxito! Guardamos la "Escarapela Invisible"
+                localStorage.setItem("empresaActiva", idEmpresa);
+                
+                // Redirigimos al panel principal
+                window.location.href = "index.html"; 
+            } else {
+                // Si alguien se registra pero no está en el diccionario
+                errorMsg.innerText = "Tu usuario no tiene una empresa asignada. Contacta al soporte.";
+                errorMsg.style.display = "block";
+                btnLogin.disabled = false;
+                btnLogin.innerText = "Ingresar";
+                // Lo cerramos por seguridad
+                auth.signOut(); 
+            }
+
+        } catch (error) {
+            console.error("Error de login:", error.code);
+            errorMsg.innerText = "Correo o contraseña incorrectos.";
+            errorMsg.style.display = "block";
+            btnLogin.disabled = false;
+            btnLogin.innerText = "Ingresar";
+        }
+    };
+</script>
+
+</body>
+</html>
