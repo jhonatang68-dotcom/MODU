@@ -85,7 +85,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -124,12 +124,14 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
           } else {
               proximoComprobante = 1;
           }
-          document.getElementById("numeroRecibo").innerText = "Comprobante No. " + proximoComprobante;
+          // CABLE 1 ARREGLADO
+          document.getElementById("numeroComprobante").innerText = "Comprobante No. " + proximoComprobante;
 
           const clientesSnap = await getDocs(collection(db, "clientes"));
           proveedoresNube = clientesSnap.docs.map(doc => doc.data());
           
-          document.getElementById("listaClientes").innerHTML = proveedoresNube
+          // CABLE 2 ARREGLADO
+          document.getElementById("listaProveedores").innerHTML = proveedoresNube
               .map(p => `<option value="${p.nombre}">`).join("");
 
           const cuentasSnap = await getDocs(collection(db, "cuentas"));
@@ -139,14 +141,17 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
 
       } catch (error) {
           console.error("Error cargando datos:", error);
-          document.getElementById("numeroRecibo").innerText = "Error de conexión";
+          // CABLE 3 ARREGLADO
+          document.getElementById("numeroComprobante").innerText = "Error de conexión";
       }
   }
 
   window.ejecutarGuardado = async (generarPDF) => {
       const btnGuardar = document.getElementById("btnGuardar");
       const btnPdf = document.getElementById("btnPdf");
-      const proveedorInput = document.getElementById("clienteInput"); 
+      
+      // CABLE 4 ARREGLADO
+      const proveedorInput = document.getElementById("proveedorInput"); 
       const descripcion = document.getElementById("descripcion");
       const cuentaSelect = document.getElementById("cuenta");
       const fechaInput = document.getElementById("fechaManual");
@@ -210,6 +215,7 @@ button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: point
   };
 
   cargarDatosIniciales();
+
 </script>
 
 </body>
